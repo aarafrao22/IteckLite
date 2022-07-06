@@ -30,6 +30,11 @@ public interface RetrofitAPI {
     @POST("ResponseModel")
     Call<ResponseModel> getCarDataList(@Field("contact") String contactNo);
 
+
+    @FormUrlEncoded
+    @POST("SelectedVehicleResponseModel")
+    Call<SelectedVehicleResponseModel> getSingleCarData(@Field("veh_id") String selectedVehicle);
+
 }
 
 

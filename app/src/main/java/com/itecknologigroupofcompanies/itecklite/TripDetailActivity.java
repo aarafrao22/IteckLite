@@ -59,8 +59,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private RecyclerView recyclerView;
     TripAdapter adapter;
     private List<TripModel> list;
-    ArrayList<String> MemberList = new ArrayList<>();
-    TextView txtNoCar, txtUserName;
+    ArrayList<String> VehicleId = new ArrayList<>();
+    ArrayList<String> VehicleRegId = new ArrayList<>();
+    TextView txtNoCar, txtUserName,txtVehicleDetails;
     private Dialog loadingDialogue;
 
     private static RemoteViews contentView;
@@ -80,12 +81,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         mapFragment.getMapAsync(this);
 
-        try {
-            getCarData("03313344034");
-        }catch (Exception e){
-
-        }
-
 
 //        notificationWalaKaam();
 //        getToken();
@@ -97,11 +92,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
 
         layout = findViewById(R.id.txtNumP);
+        txtVehicleDetails = findViewById(R.id.txtVehicleDetails);
         txtNoCar = findViewById(R.id.txt_car_no);
         txtUserName = findViewById(R.id.txtUserName);
         layout.setOnClickListener(this);
-
-
 
         ConstraintLayout bottomSheetLayout = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
@@ -129,7 +123,11 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             }
         });
 
+        try {
+            getCarData("03313344034");
+        }catch (Exception e){
 
+        }
         rvInitialization();
 
         listData();
@@ -156,9 +154,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 List<VehicleModel> vehicleModelArrayList = response.body().vehicle;
 
                 for (VehicleModel vehicleModel : vehicleModelArrayList) {
-                    MemberList.add(vehicleModel.getVeh_reg());
+                    VehicleRegId.add(vehicleModel.getVeh_reg());
+                    VehicleId.add(vehicleModel.getVehicle_id());
                 }
-                txtNoCar.setText(MemberList.get(0));
 
             }
 
@@ -273,13 +271,50 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         AlertDialog.Builder alt_bld = new AlertDialog.Builder(this);
         alt_bld.setIcon(R.drawable.ic_baseline_arrow_drop_down_24);
         alt_bld.setTitle("Select Car");
-        alt_bld.setSingleChoiceItems(MemberList.toArray(new String[0]), -1, new DialogInterface.OnClickListener() {
+        alt_bld.setSingleChoiceItems(VehicleRegId.toArray(new String[0]), -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
-                txtNoCar.setText(MemberList.get(item));
+                txtNoCar.setText(VehicleRegId.get(item).toString());
+                String selectedCarVid = VehicleId.get(item);
+                getSelectedCarData(selectedCarVid);
+
                 dialog.dismiss();
             }
         });
         AlertDialog alert = alt_bld.create();
         alert.show();
     }
+
+    private void getSelectedCarData(String selectedCarVid) {
+//        loadingDialogue.show();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://iot.itecknologi.com/mobile/get_vehicle_latest_info.php/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
+
+        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid);
+        call.enqueue(new Callback<SelectedVehicleResponseModel>() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onResponse(Call<SelectedVehicleResponseModel> call, Response<SelectedVehicleResponseModel> response) {
+
+                String location = response.body().getLocation();
+                String health = response.body().getBatteryHealth();
+                double volt = response.body().getBatteryVolt();
+                int ignition = response.body().getIgnition();
+                int speed = response.body().getSpeed();
+                String vehicleNo = response.body().getVehicleNo();
+
+                txtVehicleDetails.setText("Last Reported Location of your vehicle is\n"+location);
+            }
+
+            @Override
+            public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }
