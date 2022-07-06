@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">iTeck Lite</string>
+    <string name="title_activity_maps" />
+
+
+    <string name="default_notification_channel_id">hello1</string>
+    <string name="fcm_message">FCM Message</string>
+    <string name="default_notification_channel_name" translatable="true">Weather</string>
+    <string name="msg_token_fmt">Helloooooooo</string>
+
+
+</resources>

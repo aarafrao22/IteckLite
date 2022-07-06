@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "998246897184",
+    "project_id": "iteck-lite",
+    "storage_bucket": "iteck-lite.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998246897184:android:3fc1a25607d345d9eace45",
+        "android_client_info": {
+          "package_name": "com.itecknologigroupofcompanies.itecklite"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "998246897184-oe60urp0p3frhej5ua87knilsh9qmeh1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKzKe-564hroPkQuAAMpXyHCOs_kQT8C0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "998246897184-oe60urp0p3frhej5ua87knilsh9qmeh1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
