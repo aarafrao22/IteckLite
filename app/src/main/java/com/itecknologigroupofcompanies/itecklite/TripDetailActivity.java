@@ -61,7 +61,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private List<TripModel> list;
     ArrayList<String> VehicleId = new ArrayList<>();
     ArrayList<String> VehicleRegId = new ArrayList<>();
-    TextView txtNoCar, txtUserName,txtVehicleDetails;
+    TextView txtNoCar, txtUserName, txtVehicleDetails;
     private Dialog loadingDialogue;
 
     private static RemoteViews contentView;
@@ -125,7 +125,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         try {
             getCarData("03313344034");
-        }catch (Exception e){
+        } catch (Exception e) {
 
         }
         rvInitialization();
@@ -149,7 +149,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public void onResponse(Call<ResponseModel> call, Response<ResponseModel> response) {
                 String name = response.body().getName();
-                txtUserName.setText("Hi, "+name);
+                txtUserName.setText("Hi, " + name);
                 String success = response.body().getSuccess();
                 List<VehicleModel> vehicleModelArrayList = response.body().vehicle;
 
@@ -294,9 +294,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
-        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid);
+        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData("101837");
         call.enqueue(new Callback<SelectedVehicleResponseModel>() {
-            @SuppressLint("SetTextI18n")
             @Override
             public void onResponse(Call<SelectedVehicleResponseModel> call, Response<SelectedVehicleResponseModel> response) {
 
@@ -307,12 +306,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 int speed = response.body().getSpeed();
                 String vehicleNo = response.body().getVehicleNo();
 
-                txtVehicleDetails.setText("Last Reported Location of your vehicle is\n"+location);
+                txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
             }
 
             @Override
             public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "t.toString()", Toast.LENGTH_SHORT).show();
             }
         });
     }
