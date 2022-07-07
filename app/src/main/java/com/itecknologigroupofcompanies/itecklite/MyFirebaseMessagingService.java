@@ -24,7 +24,7 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Objects;
 
-public class MyFirebaseMessagingService extends FirebaseMessagingService implements OnMapReadyCallback {
+public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
     private GoogleMap mMap;
@@ -83,51 +83,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService impleme
     }
 
 
-//    private void sendNotification(String title, String messageBody) {
-//        Intent intent = new Intent(this, MainActivity.class);
-//        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-//                PendingIntent.FLAG_ONE_SHOT);
-//        Bitmap rawBitmap = BitmapFactory.decodeResource(getResources(),
-//                R.drawable.img);
-//
-//        String channelId = getString(R.string.default_notification_channel_id);
-//        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-//
-//        RemoteViews r = new RemoteViews(getPackageName(), R.layout.notification);
-//        r.setImageViewResource(R.id.image, R.drawable.img);
-//        r.setImageViewResource(R.id.icon, R.drawable.img);
-//        r.setTextViewText(R.id.title, title);
-//        r.setTextViewText(R.id.text, messageBody);
-//
-//
-//        NotificationCompat.Builder notificationBuilder =
-//                new NotificationCompat.Builder(this, channelId)
-//                        .setSmallIcon(R.drawable.ic_baseline_location_on_24)
-//                        .setLargeIcon(rawBitmap)
-//                        .setCustomContentView(r)
-//                        .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
-//                        .setAutoCancel(true)
-//                        .setSound(defaultSoundUri)
-//                        .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
-//                        .setContentIntent(pendingIntent);
-//
-//        NotificationManager notificationManager =
-//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            NotificationChannel channel = new NotificationChannel(channelId,
-//                    "Channel human readable title",
-//                    NotificationManager.IMPORTANCE_DEFAULT);
-//            notificationManager.createNotificationChannel(channel);
-//        }
-//
-//        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
-//
-//
-//    }
-
-
     private void RunNotification(String title, String messageBody, String context) {
         RemoteViews contentView;
         Notification notification;
@@ -137,8 +92,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService impleme
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mBuilder = new NotificationCompat.Builder(getApplicationContext(), "notify_001");
-
-        //TODO:Expanded Notification View
 
 
         @SuppressLint("RemoteViewLayout")
@@ -209,15 +162,5 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService impleme
         notification = mBuilder.build();
         notificationManager.notify(NotificationID, notification);
 
-    }
-
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        double longi = Double.parseDouble(longitude);
-        double lati = Double.parseDouble(latitude);
-
-        LatLng sydney = new LatLng(lati, longi);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("iTeck Group of companies"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 }
