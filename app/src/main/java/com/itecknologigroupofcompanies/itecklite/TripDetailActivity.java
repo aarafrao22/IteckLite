@@ -7,9 +7,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -21,6 +25,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -55,6 +62,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private GoogleMap mMap;
     private BottomSheetBehavior bottomSheetBehavior;
     ConstraintLayout layout;
+    TextView txt_time;
 
     private RecyclerView recyclerView;
     TripAdapter adapter;
@@ -63,13 +71,16 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     ArrayList<String> VehicleRegId = new ArrayList<>();
     TextView txtNoCar, txtUserName, txtVehicleDetails;
     private Dialog loadingDialogue;
+    LatLng myCarLocation;
+    double locationX;
+    double locationY;
 
     private static RemoteViews contentView;
     private static Notification notification;
     private static NotificationManager notificationManager;
     private static final int NotificationID = 1005;
     private static NotificationCompat.Builder mBuilder;
-
+    String phNo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,9 +92,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         mapFragment.getMapAsync(this);
 
+        phNo = getIntent().getStringExtra("phNo");
 
-//        notificationWalaKaam();
-//        getToken();
+        notificationWalaKaam();
+        getToken();
         loadingDialogue = new Dialog(this);
         loadingDialogue.setContentView(R.layout.loading);
         loadingDialogue.getWindow().setBackgroundDrawable(getDrawable(R.drawable.rounded_corner_main_activity));
@@ -92,6 +104,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
 
         layout = findViewById(R.id.txtNumP);
+        txt_time = findViewById(R.id.txt_time);
         txtVehicleDetails = findViewById(R.id.txtVehicleDetails);
         txtNoCar = findViewById(R.id.txt_car_no);
         txtUserName = findViewById(R.id.txtUserName);
@@ -100,6 +113,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         ConstraintLayout bottomSheetLayout = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
         bottomSheetBehavior.setPeekHeight(420);
+
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -124,7 +138,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         });
 
         try {
-            getCarData("03313344034");
+            getCarData(phNo);
         } catch (Exception e) {
 
         }
@@ -203,9 +217,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                         }
                         // Get new Instance ID token
                         String token = task.getResult().toString();
-                        Toast.makeText(TripDetailActivity.this, token, Toast.LENGTH_LONG).show();
+//                        Toast.makeText(TripDetailActivity.this, token, Toast.LENGTH_LONG).show();
                         String device_id = getDeviceId();
-                        Toast.makeText(TripDetailActivity.this, device_id.toString(), Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(TripDetailActivity.this, device_id.toString(), Toast.LENGTH_SHORT).show();
 //                        postData(token, device_id);
 //                        responseTV.setText("DataPosted");
 
@@ -248,13 +262,11 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
-        double lat = 24.827286;
-        double longi = 67.024115;
 
-        LatLng sydney = new LatLng(lat, longi);
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        mMap.setMinZoomPreference(18f);
+        myCarLocation = new LatLng(locationY,locationX);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCarLocation,18f));
+        mMap.addMarker(new MarkerOptions().position(myCarLocation).title("Your Location")
+                .icon(bitmapDescriptorFromVector(this,R.drawable.car_grey))/*.rotation(65))*/);
 
     }
 
@@ -294,19 +306,28 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
-        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData("101837");
+        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid);
         call.enqueue(new Callback<SelectedVehicleResponseModel>() {
             @Override
             public void onResponse(Call<SelectedVehicleResponseModel> call, Response<SelectedVehicleResponseModel> response) {
 
                 String location = response.body().getLocation();
                 String health = response.body().getBatteryHealth();
-                double volt = response.body().getBatteryVolt();
-                int ignition = response.body().getIgnition();
-                int speed = response.body().getSpeed();
+                String volt = response.body().getBatteryVolt();
+                String ignition = response.body().getIgnition();
+                String speed = response.body().getSpeed();
                 String vehicleNo = response.body().getVehicleNo();
+                String x = response.body().getX();
+                String y = response.body().getY();
+                GpsTime gpsTime = response.body().GpsTime;
 
                 txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
+                txt_time.setText(gpsTime.date);
+                locationX = Double.parseDouble(x);
+                locationY = Double.parseDouble(y);
+
+                onMapReady(mMap);
+
             }
 
             @Override
@@ -314,6 +335,17 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 Toast.makeText(getApplicationContext(), "t.toString()", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vector){
+
+        Drawable drawable = ContextCompat.getDrawable(context,vector);
+        drawable.setBounds(0,0,drawable.getIntrinsicWidth(),drawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),drawable.getIntrinsicHeight(),Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
 }

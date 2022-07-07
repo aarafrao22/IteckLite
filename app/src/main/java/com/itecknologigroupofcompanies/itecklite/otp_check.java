@@ -2,11 +2,15 @@ package com.itecknologigroupofcompanies.itecklite;
 
 //import static android.content.ContentValues.TAG;
 
+import static android.content.ContentValues.TAG;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
@@ -23,6 +27,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.stfalcon.smsverifycatcher.OnSmsCatchListener;
@@ -45,7 +50,7 @@ public class otp_check extends AppCompatActivity {
     //private final int SPLASH_DISPLAY_LENGTH = 4000;
     private VideoView clip;
     private Dialog loadingDialogue;
-
+    String phNo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +63,10 @@ public class otp_check extends AppCompatActivity {
         otpnotify = (TextView) findViewById(R.id.textViewotpnotify);
         otp = (EditText) findViewById(R.id.textInputEditTextotp);
         resendotp = (TextView) findViewById(R.id.textView4);
+
+        phNo = getIntent().getStringExtra("phNo");
+
+
 
 
         loadingDialogue = new Dialog(this);
@@ -344,16 +353,18 @@ public class otp_check extends AppCompatActivity {
                     String responseString = "Response Code:" + response.code() + "\n" + "Response:" + responseFromAPI.getSuccess() + "\n" + "Msg:" + responseFromAPI.getMessage();
 
                     //Toast.makeText(otp_check.this, responseString, Toast.LENGTH_SHORT).show();
-                    if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP Verified")) {
+                    if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP VERIFIED")) {
                         Intent intent = new Intent(getApplicationContext(), TripDetailActivity.class);
-
+                        intent.putExtra("phNo",phNo);
                         startActivity(intent);
                         finish();
                         loadingDialogue.dismiss();
-                    } else
+                    } else{
                         loadingDialogue.dismiss();
-//                        Toast.makeText(otp_check.this, "Invalid OTP.", Toast.LENGTH_SHORT).show();
-                    return;
+                        showAlertDialogue("Invalid OTP","OTP you entered, is not correct",R.drawable.ic_close_circle_line);
+                        return;
+                    }
+
                 }
 
 
@@ -368,6 +379,28 @@ public class otp_check extends AppCompatActivity {
 
         }
 
+    }
+
+    private void showAlertDialogue(String title,String message,int icon) {
+
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+        builder1.setTitle(title);
+        builder1.setMessage(message);
+        builder1.setIcon(icon);
+        builder1.setCancelable(true);
+
+        builder1.setPositiveButton(
+                "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                        dialog.cancel();
+                    }
+                });
+
+
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
     }
 
 

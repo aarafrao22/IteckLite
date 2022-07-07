@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">iTeck Lite</string>
-    <string name="title_activity_maps" />
 
 
     <string name="default_notification_channel_id">hello1</string>

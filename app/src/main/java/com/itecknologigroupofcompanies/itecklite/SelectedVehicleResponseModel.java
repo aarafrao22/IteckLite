@@ -1,21 +1,30 @@
 package com.itecknologigroupofcompanies.itecklite;
 
+
 public class SelectedVehicleResponseModel {
     String BatteryHealth;
-    Double BatteryVolt;
-    int Ignition;
+    String BatteryVolt;
+    GpsTime GpsTime;
+    String Ignition;
     String Location;
-    int Speed;
+    String Speed;
     String VehicleNo;
+    String X;
+    String Y;
 
-    public SelectedVehicleResponseModel(String batteryHealth, Double batteryVolt, int ignition, String location, int speed, String vehicleNo) {
+
+    public SelectedVehicleResponseModel(String batteryHealth, String batteryVolt, com.itecknologigroupofcompanies.itecklite.GpsTime gpsTime, String ignition, String location, String speed, String vehicleNo, String x, String y) {
         BatteryHealth = batteryHealth;
         BatteryVolt = batteryVolt;
+        GpsTime = gpsTime;
         Ignition = ignition;
         Location = location;
         Speed = speed;
         VehicleNo = vehicleNo;
+        X = x;
+        Y = y;
     }
+
 
     public String getBatteryHealth() {
         return BatteryHealth;
@@ -25,19 +34,27 @@ public class SelectedVehicleResponseModel {
         BatteryHealth = batteryHealth;
     }
 
-    public Double getBatteryVolt() {
+    public String getBatteryVolt() {
         return BatteryVolt;
     }
 
-    public void setBatteryVolt(Double batteryVolt) {
+    public void setBatteryVolt(String batteryVolt) {
         BatteryVolt = batteryVolt;
     }
 
-    public int getIgnition() {
+    public com.itecknologigroupofcompanies.itecklite.GpsTime getGpsTime() {
+        return GpsTime;
+    }
+
+    public void setGpsTime(com.itecknologigroupofcompanies.itecklite.GpsTime gpsTime) {
+        GpsTime = gpsTime;
+    }
+
+    public String getIgnition() {
         return Ignition;
     }
 
-    public void setIgnition(int ignition) {
+    public void setIgnition(String ignition) {
         Ignition = ignition;
     }
 
@@ -49,11 +66,11 @@ public class SelectedVehicleResponseModel {
         Location = location;
     }
 
-    public int getSpeed() {
+    public String getSpeed() {
         return Speed;
     }
 
-    public void setSpeed(int speed) {
+    public void setSpeed(String speed) {
         Speed = speed;
     }
 
@@ -63,5 +80,21 @@ public class SelectedVehicleResponseModel {
 
     public void setVehicleNo(String vehicleNo) {
         VehicleNo = vehicleNo;
+    }
+
+    public String getX() {
+        return X;
+    }
+
+    public void setX(String x) {
+        X = x;
+    }
+
+    public String getY() {
+        return Y;
+    }
+
+    public void setY(String y) {
+        Y = y;
     }
 }

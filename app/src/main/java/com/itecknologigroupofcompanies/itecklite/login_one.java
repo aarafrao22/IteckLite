@@ -1,5 +1,8 @@
 package com.itecknologigroupofcompanies.itecklite;
 
+import static android.content.ContentValues.TAG;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,16 +18,22 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 //import com.google.firebase.iid.FirebaseInstanceId;
 //import com.google.firebase.iid.InstanceIdResult;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.HashMap;
 
@@ -106,26 +115,26 @@ public class login_one extends AppCompatActivity {
             }
         });*/
 
-        //        FirebaseMessaging.getInstance().getToken()
-//                .addOnCompleteListener(new OnCompleteListener<String>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<String> task) {
-//                        if (!task.isSuccessful()) {
-//                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-//                            return;
-//                        }
-//
-//                        // Get new FCM registration token
-//                        String token = task.getResult();
-//
-//                        tokenn = token;
+                FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                            return;
+                        }
+
+                        // Get new FCM registration token
+                        String token = task.getResult();
+
+                        tokenn = token;
 //                         Toast.makeText(login_one.this, tokenn, Toast.LENGTH_SHORT).show();
-//                        // Log and toast
-//                       // String msg = getString(R.string.msg_token_fmt, token);
-//                       // Log.d(TAG, msg);
-//                       // Toast.makeText(login_one.this, msg, Toast.LENGTH_SHORT).show();
-//                    }
-//                });
+                        // Log and toast
+                       // String msg = getString(R.string.msg_token_fmt, token);
+                       // Log.d(TAG, msg);
+                       // Toast.makeText(login_one.this, msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
 
 
         /**Working for device id:**/
@@ -148,6 +157,7 @@ public class login_one extends AppCompatActivity {
                     if (!TextUtils.isEmpty(ContactNo.getText())) {
                         if (Email.getText().toString().matches(emailPattern)) {
                             if (ContactNo.getText().toString().matches(validNumber)) {
+
                                 regclip.stopPlayback();
                                 String a = androidId.toString().trim();
                                 String b = Email.getText().toString().trim();
@@ -220,6 +230,7 @@ public class login_one extends AppCompatActivity {
 
                     if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP Sent")) {
                         Intent intent = new Intent(getApplicationContext(), otp_check.class);
+                        intent.putExtra("phNo",c);
                         startActivity(intent);
                         finish();
                         loadingDialogue.dismiss();
@@ -263,15 +274,7 @@ public class login_one extends AppCompatActivity {
         alert11.show();
     }
 
-    public void setBtnEnabled() {
-        register.setEnabled(true);
-        register.setTextColor(Color.rgb(255, 255, 255));
-    }
 
-    public void setBtnDisabled() {
-        register.setEnabled(false);
-        register.setTextColor(Color.argb(50, 255, 255, 255));
-    }
 
 
 }
