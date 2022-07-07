@@ -26,19 +26,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg"
-            app:layout_constraintTop_toTopOf="parent"
             android:backgroundTint="@color/white"
             android:padding="6dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
                 android:id="@+id/linearLayout6b"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:orientation="vertical"
                 android:layout_margin="8dp"
+                android:orientation="vertical"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
@@ -51,17 +51,18 @@
                     android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold" />
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/txtNumP"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg"
+                    android:layout_gravity="center"
                     android:layout_marginTop="4dp"
+                    android:background="@drawable/bg"
                     android:backgroundTint="@color/dark_grey"
+                    android:gravity="center"
                     android:orientation="horizontal"
                     android:paddingStart="8dp"
-                    android:gravity="center"
-                    android:layout_gravity="center"
                     android:paddingTop="2dp"
                     android:paddingEnd="8dp"
                     android:paddingBottom="2dp"
@@ -73,9 +74,9 @@
                         android:id="@+id/txt_car_no"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
                         android:text="JHG-2321"
                         android:textColor="@color/white"
-                        android:layout_marginStart="8dp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -102,18 +103,16 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
                     android:layout_marginTop="4dp"
-                    android:gravity="center"
+                    android:layout_marginEnd="8dp"
                     android:layout_marginBottom="8dp"
+                    android:gravity="center"
                     android:textSize="12sp" />
 
             </LinearLayout>
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

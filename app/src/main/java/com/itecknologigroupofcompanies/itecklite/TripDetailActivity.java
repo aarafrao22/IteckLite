@@ -69,11 +69,13 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private List<TripModel> list;
     ArrayList<String> VehicleId = new ArrayList<>();
     ArrayList<String> VehicleRegId = new ArrayList<>();
-    TextView txtNoCar, txtUserName, txtVehicleDetails;
+    TextView txtNoCar, txtUserName, txtVehicleDetails,txtDate;
     private Dialog loadingDialogue;
     LatLng myCarLocation;
     double locationX;
     double locationY;
+    int angle = 90;
+    int vehicleColor = R.drawable.black_car;
 
     private static RemoteViews contentView;
     private static Notification notification;
@@ -102,9 +104,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         loadingDialogue.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         loadingDialogue.setCancelable(false);
 
-
         layout = findViewById(R.id.txtNumP);
         txt_time = findViewById(R.id.txt_time);
+        txtDate = findViewById(R.id.txt_date);
         txtVehicleDetails = findViewById(R.id.txtVehicleDetails);
         txtNoCar = findViewById(R.id.txt_car_no);
         txtUserName = findViewById(R.id.txtUserName);
@@ -171,6 +173,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     VehicleRegId.add(vehicleModel.getVeh_reg());
                     VehicleId.add(vehicleModel.getVehicle_id());
                 }
+
+                String selectedCarVid = VehicleId.get(0);
+                getSelectedCarData(VehicleId.get(0));
+                txtNoCar.setText(VehicleRegId.get(0).toString());
 
             }
 
@@ -262,11 +268,11 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
-
-        myCarLocation = new LatLng(locationY,locationX);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCarLocation,18f));
+        myCarLocation = new LatLng(locationY, locationX);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCarLocation, 18f));
         mMap.addMarker(new MarkerOptions().position(myCarLocation).title("Your Location")
-                .icon(bitmapDescriptorFromVector(this,R.drawable.car_grey))/*.rotation(65))*/);
+                .icon(bitmapDescriptorFromVector(this, vehicleColor)).rotation(angle));
+
 
     }
 
@@ -308,6 +314,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid);
         call.enqueue(new Callback<SelectedVehicleResponseModel>() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onResponse(Call<SelectedVehicleResponseModel> call, Response<SelectedVehicleResponseModel> response) {
 
@@ -320,29 +327,45 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String x = response.body().getX();
                 String y = response.body().getY();
                 GpsTime gpsTime = response.body().GpsTime;
+                String V_Ang = response.body().getV_Ang();
 
                 txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
-                txt_time.setText(gpsTime.date);
+                String string = gpsTime.date;
+                String[] parts = string.split(" ");
+                String date = parts[0]; // 004
+                String time = parts[1];
+
+                String[] parts2 = time.split("\\.");
+                String formattedTime = parts2[0];
+
+                txt_time.setText(formattedTime);
+                txtDate.setText(date);
                 locationX = Double.parseDouble(x);
                 locationY = Double.parseDouble(y);
+                angle = Integer.parseInt(V_Ang);
 
+                if (ignition.equals("1") || speed.equals("0")){
+                    vehicleColor = R.drawable.green_car;
+                }else if(ignition.equals("0")){
+                    vehicleColor = R.drawable.red_car;
+                }
                 onMapReady(mMap);
 
             }
 
             @Override
             public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), "t.toString()", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
 
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vector){
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vector) {
 
-        Drawable drawable = ContextCompat.getDrawable(context,vector);
-        drawable.setBounds(0,0,drawable.getIntrinsicWidth(),drawable.getIntrinsicHeight());
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),drawable.getIntrinsicHeight(),Bitmap.Config.ARGB_8888);
+        Drawable drawable = ContextCompat.getDrawable(context, vector);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         drawable.draw(canvas);
         return BitmapDescriptorFactory.fromBitmap(bitmap);

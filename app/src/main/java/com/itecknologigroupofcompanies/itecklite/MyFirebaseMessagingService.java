@@ -38,8 +38,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String title = remoteMessage.getData().get("title");
         String body = remoteMessage.getData().get("body");
         String context = remoteMessage.getData().get("context");
-        latitude = remoteMessage.getData().get("lat");
-        longitude = remoteMessage.getData().get("long");
 
 
         RunNotification(title, body, context);
