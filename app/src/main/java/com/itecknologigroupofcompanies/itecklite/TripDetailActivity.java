@@ -35,7 +35,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,8 +46,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import java.lang.reflect.Member;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -69,7 +69,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private List<TripModel> list;
     ArrayList<String> VehicleId = new ArrayList<>();
     ArrayList<String> VehicleRegId = new ArrayList<>();
-    TextView txtNoCar, txtUserName, txtVehicleDetails,txtDate;
+    TextView txtNoCar, txtUserName, txtVehicleDetails, txtDate;
     private Dialog loadingDialogue;
     LatLng myCarLocation;
     double locationX;
@@ -344,10 +344,24 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 locationY = Double.parseDouble(y);
                 angle = Integer.parseInt(V_Ang);
 
-                if (ignition.equals("1") || speed.equals("0")){
+                String[] parts3 = time.split(":");
+                String timeForLogic = parts3[0];
+                int time1 = Integer.parseInt(timeForLogic);
+
+                @SuppressLint("SimpleDateFormat")
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                String s = sdf.format(new Date());
+                String[] tmp1 = s.split(":");
+                int currentTime = Integer.parseInt(tmp1[0]);
+
+                if (ignition.equals("1") || speed.equals("0")) {
                     vehicleColor = R.drawable.green_car;
-                }else if(ignition.equals("0")){
+                } else if (ignition.equals("0")) {
                     vehicleColor = R.drawable.red_car;
+                } else if (time1 > currentTime) {
+                    vehicleColor = R.drawable.gray_car;
+                } else {
+                    vehicleColor = R.drawable.black_car;
                 }
                 onMapReady(mMap);
 
