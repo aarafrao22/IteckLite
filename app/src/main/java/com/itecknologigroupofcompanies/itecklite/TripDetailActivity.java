@@ -338,7 +338,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String[] parts2 = time.split("\\.");
                 String formattedTime = parts2[0];
 
-                txt_time.setText(formattedTime);
+
                 txtDate.setText(date);
                 locationX = Double.parseDouble(x);
                 locationY = Double.parseDouble(y);
@@ -347,6 +347,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String[] parts3 = time.split(":");
                 String timeForLogic = parts3[0];
                 int time1 = Integer.parseInt(timeForLogic);
+
+                convertTime(time1);
+                txt_time.setText(time1+formattedTime);
+
 
                 @SuppressLint("SimpleDateFormat")
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
@@ -363,6 +367,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 } else {
                     vehicleColor = R.drawable.black_car;
                 }
+
                 onMapReady(mMap);
 
             }
@@ -372,6 +377,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void convertTime(int time1) {
+        if (time1>12) {
+            time1 = time1-12;
+        }
     }
 
 
