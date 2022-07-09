@@ -27,7 +27,7 @@
             android:value="${MAPS_API_KEY}" />
 
         <activity
-            android:name=".TripDetailActivity"
+            android:name=".splash"
             android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
@@ -36,7 +36,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".splash"
+            android:name=".TripDetailActivity"
             android:exported="false" />
         <activity
             android:name=".otp_check"

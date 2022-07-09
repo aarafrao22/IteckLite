@@ -30,14 +30,16 @@
             android:orientation="vertical">
 
             <ImageView
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_height="12dp"
+                android:rotation="90"
                 android:layout_marginBottom="8dp"
-                android:src="@drawable/ic_baseline_minimize_24" />
+                android:src="@drawable/line" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:padding="12dp"
                 android:background="@drawable/bg">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
@@ -67,7 +69,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="start"
-                            android:layout_marginStart="8dp"
                             android:text="12:30 PM"
                             android:textColor="@color/black"
                             android:textSize="16sp"
@@ -78,26 +79,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="start"
-                            android:layout_marginStart="8dp"
                             android:text="30-06-22 Wednesday"
                             android:textSize="12dp" />
 
                     </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/iconDown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:src="@drawable/ic_baseline_keyboard_arrow_down_24"
-                        app:layout_constraintBottom_toBottomOf="@+id/linearLayout6"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="@+id/linearLayout6" />
-
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
                         android:background="@drawable/full_rounded"
                         android:backgroundTint="#0030BF"
                         android:gravity="center"
@@ -106,17 +95,17 @@
                         android:paddingEnd="22dp"
                         android:paddingBottom="6dp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@+id/iconDown"
+                        app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@+id/linearLayout6">
 
                         <ImageView
                             android:layout_width="15dp"
                             android:layout_height="15dp"
-                            android:rotation="290"
-                            android:src="@drawable/ic_baseline_send_24"
+                            android:src="@drawable/ic_baseline_directions_car_24"
                             app:tint="@color/white" />
 
                         <TextView
+                            android:id="@+id/txtSelectedVehicle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="4dp"
@@ -128,13 +117,75 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
 
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/constraintLayout11"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@+id/constraintLayout7">
+
+                    <ImageView
+                        android:id="@+id/imgSPeed"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_baseline_speed_24"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_margin="4dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintWidth_percent="0.1"
+                        app:tint="@color/dark_grey" />
+
+                    <TextView
+                        android:id="@+id/txtSpeed"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="6850 highway 121 frisco, TX75034"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/imgSPeed"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintWidth_percent="0.9" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/constraintLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@+id/constraintLayout11">
+
+                    <ImageView
+                        android:id="@+id/imgIgnition"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_margin="4dp"
+                        android:src="@drawable/ic_baseline_power_settings_new_24"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintWidth_percent="0.1"
+                        app:tint="@color/dark_grey" />
+
+                    <TextView
+                        android:id="@+id/txtIgnition"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="6850 highway 121 frisco, TX75034"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/imgIgnition"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintWidth_percent="0.9" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg"
-                    android:padding="8dp"
-                    app:layout_constraintTop_toBottomOf="@+id/constraintLayout7">
+                    android:layout_margin="4dp"
+                    app:layout_constraintTop_toBottomOf="@+id/constraintLayout">
 
                     <ImageView
                         android:id="@+id/imageView18"
@@ -148,6 +199,7 @@
                         app:tint="@color/dark_grey" />
 
                     <TextView
+                        android:id="@+id/txtLatLong"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
@@ -159,6 +211,8 @@
 
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
 
