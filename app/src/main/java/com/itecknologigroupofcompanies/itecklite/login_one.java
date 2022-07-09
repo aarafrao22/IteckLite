@@ -156,7 +156,6 @@ public class login_one extends AppCompatActivity {
                 if (!TextUtils.isEmpty(Email.getText())) {
                     if (!TextUtils.isEmpty(ContactNo.getText())) {
                         if (Email.getText().toString().matches(emailPattern)) {
-                            if (ContactNo.getText().toString().matches(validNumber)) {
 
                                 regclip.stopPlayback();
                                 String a = androidId.toString().trim();
@@ -166,7 +165,6 @@ public class login_one extends AppCompatActivity {
 
                                 postData(a, b, c, d);
 
-                            } else ContactNo.setError("Enter Valid Contact");
                         } else Email.setError("Enter Valid Email");
                     } else ContactNo.setError("Enter Contact No");
                 } else Email.setError("Enter Email");
