@@ -140,7 +140,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         });
 
         try {
-            getCarData(phNo);
+//            getCarData(phNo);
+            getCarData("03092225699");
         } catch (Exception e) {
 
         }
@@ -267,7 +268,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
+
         mMap = googleMap;
+        mMap.clear();
         myCarLocation = new LatLng(locationY, locationX);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCarLocation, 18f));
         mMap.addMarker(new MarkerOptions().position(myCarLocation).title("Your Location")
@@ -335,21 +338,28 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String date = parts[0]; // 004
                 String time = parts[1];
 
-                String[] parts2 = time.split("\\.");
-                String formattedTime = parts2[0];
-
-
                 txtDate.setText(date);
                 locationX = Double.parseDouble(x);
                 locationY = Double.parseDouble(y);
                 angle = Integer.parseInt(V_Ang);
 
-                String[] parts3 = time.split(":");
-                String timeForLogic = parts3[0];
-                int time1 = Integer.parseInt(timeForLogic);
 
-                convertTime(time1);
-                txt_time.setText(time1+formattedTime);
+                String[] parts2 = time.split(":");
+                int hour = Integer.parseInt(parts2[0]);
+                String minute = parts2[1];
+                String timeStatus;
+
+                String finalHour;
+
+                if (hour > 12) {
+                    finalHour = convertTime(String.valueOf(hour));
+                    timeStatus = "PM";
+                } else {
+                    finalHour = String.valueOf(hour);
+                    timeStatus = "AM";
+                }
+
+                txt_time.setText(finalHour + ":" + minute + " " + timeStatus);
 
 
                 @SuppressLint("SimpleDateFormat")
@@ -358,12 +368,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String[] tmp1 = s.split(":");
                 int currentTime = Integer.parseInt(tmp1[0]);
 
-                if (ignition.equals("1") || speed.equals("0")) {
+                if (hour > currentTime) {
+                    vehicleColor = R.drawable.gray_car;
+                } else if (ignition.equals("1") || speed.equals("0")) {
                     vehicleColor = R.drawable.green_car;
                 } else if (ignition.equals("0")) {
                     vehicleColor = R.drawable.red_car;
-                } else if (time1 > currentTime) {
-                    vehicleColor = R.drawable.gray_car;
                 } else {
                     vehicleColor = R.drawable.black_car;
                 }
@@ -379,10 +389,48 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         });
     }
 
-    private void convertTime(int time1) {
-        if (time1>12) {
-            time1 = time1-12;
+    private String convertTime(String time1) {
+        String finalHour;
+        switch (time1) {
+            case "13":
+                time1 = "1";
+                break;
+            case "14":
+                time1 = "2";
+                break;
+            case "15":
+                time1 = "3";
+                break;
+            case "16":
+                time1 = "4";
+                break;
+            case "17":
+                time1 = "5";
+                break;
+            case "18":
+                time1 = "6";
+                break;
+            case "19":
+                time1 = "7";
+                break;
+            case "20":
+                time1 = "8";
+                break;
+            case "21":
+                time1 = "9";
+                break;
+            case "22":
+                time1 = "10";
+                break;
+            case "23":
+                time1 = "11";
+                break;
+            case "24":
+                time1 = "12";
+                break;
         }
+        finalHour = time1;
+        return finalHour;
     }
 
 
