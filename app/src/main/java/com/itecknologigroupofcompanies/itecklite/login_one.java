@@ -25,7 +25,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 //import com.google.firebase.iid.FirebaseInstanceId;
@@ -52,6 +51,7 @@ public class login_one extends AppCompatActivity {
     private EditText ContactNo, Email;
     String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+.[a-z]+";
     String validNumber = "^[+]?[0-9]{8,15}$";
+    String androidId;
 
     //String DeviceID="ABCDEF4321";
     @Override
@@ -107,15 +107,6 @@ public class login_one extends AppCompatActivity {
         });
         /** getting token **/
 
-        /*FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                String token = instanceIdResult.getToken();
-                tokenn.equals(token);
-                // send it to server
-            }
-        });*/
-
                 FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(new OnCompleteListener<String>() {
                     @Override
@@ -128,7 +119,6 @@ public class login_one extends AppCompatActivity {
                         // Get new FCM registration token
                         String token = task.getResult();
                         tokenn = token;
-//                         Toast.makeText(login_one.this, tokenn, Toast.LENGTH_SHORT).show();
                         // Log and toast
                        // String msg = getString(R.string.msg_token_fmt, token);
                        // Log.d(TAG, msg);
@@ -162,7 +152,6 @@ public class login_one extends AppCompatActivity {
                                 String b = Email.getText().toString().trim();
                                 String c = ContactNo.getText().toString().trim();
                                 String d = tokenn.trim();
-
                                 postData(a, b, c, d);
 
                         } else Email.setError("Enter Valid Email");
@@ -189,11 +178,12 @@ public class login_one extends AppCompatActivity {
             TelephonyManager telephonyManager;
             telephonyManager = (TelephonyManager) getSystemService(Context.
                     TELEPHONY_SERVICE);
-            String androidId = Settings.Secure.getString(getContentResolver(),
+            androidId = Settings.Secure.getString(getContentResolver(),
                     Settings.Secure.ANDROID_ID);// this is Android ID.
 
             HashMap<String, String> fields = new HashMap<>();
             String a = androidId;
+            Log.d(TAG, "DeviceID: "+a);
             String b = Email.getText().toString();
             String c = ContactNo.getText().toString();
             String d = tokenn;
@@ -224,11 +214,11 @@ public class login_one extends AppCompatActivity {
                     SharedPreferences.Editor myEdit = sharedPreferences.edit();
                     myEdit.putString("apploginid", responsDeviceid);
                     myEdit.apply();
-                    Toast.makeText(login_one.this, "App login ID "+responsDeviceid+" is saved", Toast.LENGTH_SHORT).show();
 
                     if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP Sent")) {
                         Intent intent = new Intent(getApplicationContext(), otp_check.class);
                         intent.putExtra("contact",c);
+                        intent.putExtra("deviceId",androidId);
                         startActivity(intent);
                         finish();
                         loadingDialogue.dismiss();

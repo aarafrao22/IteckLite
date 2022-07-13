@@ -26,6 +26,15 @@ public interface RetrofitAPI {
     @POST("DataModel")
     Call<DataModal> createComment(@FieldMap Map<String, String> fields);
 
+
+    @FormUrlEncoded
+    @POST("OTPResponseModel")
+    Call<OTPResponseModel> checkOTP(
+            @Field("login_id") String login_id,
+            @Field("OTP") String OTP,
+            @Field("device_id") String device_id);
+
+
     @FormUrlEncoded
     @POST("ResponseModel")
     Call<ResponseModel> getCarDataList(@Field("contact") String contactNo);
@@ -33,7 +42,7 @@ public interface RetrofitAPI {
 
     @FormUrlEncoded
     @POST("SelectedVehicleResponseModel")
-    Call<SelectedVehicleResponseModel> getSingleCarData(@Field("veh_id") String selectedVehicle);
+    Call<SelectedVehicleResponseModel> getSingleCarData(@Field("veh_id") String selectedVehicle,@Field("object_id") String selectedVehicleObjId);
 
 }
 

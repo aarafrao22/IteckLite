@@ -39,7 +39,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RemoteViews;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -72,6 +71,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private List<TripModel> list;
     ArrayList<String> VehicleId = new ArrayList<>();
     ArrayList<String> VehicleRegId = new ArrayList<>();
+    ArrayList<String> VehicleObjId = new ArrayList<>();
     TextView txtNoCar, txtUserName, txtVehicleDetails, txtDate;
     private Dialog loadingDialogue;
     LatLng myCarLocation;
@@ -134,7 +134,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             loadingDialogue.dismiss();
         } catch (Exception e) {
             loadingDialogue.dismiss();
-            Toast.makeText(getApplicationContext(), "Something Went Wrong", Toast.LENGTH_SHORT).show();
         }
 
 //        rvInitialization();
@@ -155,35 +154,37 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         Call<ResponseModel> call = retrofitAPI.getCarDataList(contactNo);
         call.enqueue(new Callback<ResponseModel>() {
+            @SuppressLint("SetTextI18n")
             @Override
-            public void onResponse(Call<ResponseModel> call, Response<ResponseModel> response) {
-                String name = response.body().getName();
-                txtUserName.setText("Hi, " + name);
+            public void onResponse(@NonNull Call<ResponseModel> call, @NonNull Response<ResponseModel> response) {
+                assert response.body() != null;
                 String success = response.body().getSuccess();
-                List<VehicleModel> vehicleModelArrayList = response.body().vehicle;
 
-                for (VehicleModel vehicleModel : vehicleModelArrayList) {
-                    VehicleRegId.add(vehicleModel.getVeh_reg());
-                    VehicleId.add(vehicleModel.getVehicle_id());
+                if (success.equals("true")){
+                    String name = response.body().getName();
+                    txtUserName.setText("Hi, " + name);
+                    List<VehicleModel> vehicleModelArrayList = response.body().vehicle;
+
+                    for (VehicleModel vehicleModel : vehicleModelArrayList) {
+                        VehicleRegId.add(vehicleModel.getVeh_reg());
+                        VehicleId.add(vehicleModel.getVehicle_id());
+                        VehicleObjId.add(vehicleModel.getObject_id());
+                    }
+
+                    try {
+                        getSelectedCarData(VehicleId.get(0),VehicleObjId.get(0));
+                    } catch (Exception e) {
+                    }
+                    txtNoCar.setText(VehicleRegId.get(0).toString());
                 }
-
-                String selectedCarVid = VehicleId.get(0);
-
-                try {
-                    getSelectedCarData(VehicleId.get(0));
-                } catch (Exception e) {
-                    Toast.makeText(TripDetailActivity.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
-                }
-                txtNoCar.setText(VehicleRegId.get(0).toString());
 
                 loadingDialogue.dismiss();
 
             }
 
             @Override
-            public void onFailure(Call<ResponseModel> call, Throwable t) {
+            public void onFailure(@NonNull Call<ResponseModel> call, @NonNull Throwable t) {
                 loadingDialogue.dismiss();
-                Toast.makeText(getApplicationContext(), t.toString(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -208,6 +209,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
+    @SuppressLint("HardwareIds")
     private String getDeviceId() {
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         return Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -296,11 +298,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             public void onClick(DialogInterface dialog, int item) {
                 txtNoCar.setText(VehicleRegId.get(item).toString());
                 String selectedCarVid = VehicleId.get(item);
+                String selectedObjID = VehicleObjId.get(item);
 
                 try {
-                    getSelectedCarData(selectedCarVid);
+                    getSelectedCarData(selectedCarVid,selectedObjID);
                 } catch (Exception e) {
-                    Toast.makeText(TripDetailActivity.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+
                 }
 
                 dialog.dismiss();
@@ -310,7 +313,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         alert.show();
     }
 
-    private void getSelectedCarData(String selectedCarVid) {
+    private void getSelectedCarData(String selectedCarVid,String selectedCarObjId) {
         loadingDialogue.show();
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -320,7 +323,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
-        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid);
+        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid,selectedCarObjId);
         call.enqueue(new Callback<SelectedVehicleResponseModel>() {
             @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
             @Override
@@ -417,7 +420,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
             @Override
             public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), "API Error", Toast.LENGTH_SHORT).show();
                 loadingDialogue.dismiss();
             }
         });

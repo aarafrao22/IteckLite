@@ -27,7 +27,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.stfalcon.smsverifycatcher.OnSmsCatchListener;
@@ -51,6 +50,9 @@ public class otp_check extends AppCompatActivity {
     private VideoView clip;
     private Dialog loadingDialogue;
     String phNo;
+    String deviceId;
+    SharedPreferences sh;
+    String Lloginid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +66,11 @@ public class otp_check extends AppCompatActivity {
         otp = (EditText) findViewById(R.id.textInputEditTextotp);
         resendotp = (TextView) findViewById(R.id.textView4);
 
-        phNo = getIntent().getStringExtra("phNo");
+        sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
 
-
+        phNo = getIntent().getStringExtra("contact");
+        deviceId = getIntent().getStringExtra("deviceId");
+        Lloginid = sh.getString("apploginid", "");
 
 
         loadingDialogue = new Dialog(this);
@@ -134,8 +138,9 @@ public class otp_check extends AppCompatActivity {
                 String c = contact.trim();
                 String d = "fcm";
 
+                Log.d(TAG, "onClick: "+"LoginID: "+Lloginid+"OTP: "+b+"DeviceID: "+deviceId);
 
-                postData(a.trim(), b.trim(), c.trim(), d.trim());
+                postData(Lloginid,b,deviceId);
             }
         });
 
@@ -272,7 +277,6 @@ public class otp_check extends AppCompatActivity {
             String eemail = (fetchemail);
             String pphone = (fetchphone);
 
-
             HashMap<String, String> fields = new HashMap<>();
             String a = androidId;
             String b = eemail;
@@ -282,6 +286,8 @@ public class otp_check extends AppCompatActivity {
             fields.put("Email", b);
             fields.put("Contact", c);
             fields.put("FcmToken", d);
+
+
 
 //            Toast.makeText(otp_check.this, "Active", Toast.LENGTH_LONG).show();
             Call<DataModal> call = retrofitAPI.createComment(fields);
@@ -313,7 +319,7 @@ public class otp_check extends AppCompatActivity {
     }
 
 
-    private void postData(String deviceId, String otp, String contact, String FcmToken) {
+    private void postData(String LoginID, String otp, String DeviceID) {
         loadingDialogue.show();
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -322,43 +328,27 @@ public class otp_check extends AppCompatActivity {
                 .build();
 
         RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
-        DataModal modal = new DataModal(deviceId, otp, contact, FcmToken);
 
+        Call<OTPResponseModel> call = retrofitAPI.checkOTP(LoginID,otp,DeviceID);
 
-        if (modal.equals(null) && modal.equals("")) {
-//            Toast.makeText(otp_check.this, "Modal Is Empty", Toast.LENGTH_LONG).show();
-            loadingDialogue.dismiss();
-        } else {
-            TelephonyManager telephonyManager;
-            telephonyManager = (TelephonyManager) getSystemService(Context.
-                    TELEPHONY_SERVICE);
-            @SuppressLint("HardwareIds") String androidId = Settings.Secure.getString(getContentResolver(),
-                    Settings.Secure.ANDROID_ID);// this is Android ID.
-
-            HashMap<String, String> fields = new HashMap<>();
-            String a = androidId;
-            String b = otp.toString();
-            String c = contact;
-            fields.put("login_id", a);
-            fields.put("OTP", b);
-            fields.put("contact", c);
-
-            Call<DataModal> call = retrofitAPI.createComment(fields);
-
-            call.enqueue(new Callback<DataModal>() {
+            call.enqueue(new Callback<OTPResponseModel>() {
                 @Override
-                public void onResponse(Call<DataModal> call, retrofit2.Response<DataModal> response) {
+                public void onResponse(Call<OTPResponseModel> call, retrofit2.Response<OTPResponseModel> response) {
 
-                    DataModal responseFromAPI = response.body();
-                    String responseString = "Response Code:" + response.code() + "\n" + "Response:" + responseFromAPI.getSuccess() + "\n" + "Msg:" + responseFromAPI.getMessage();
+                    OTPResponseModel responseFromAPI = response.body();
+                    String verification = responseFromAPI.getMessage();
+                    String Success = responseFromAPI.getSuccess();
 
-                    //Toast.makeText(otp_check.this, responseString, Toast.LENGTH_SHORT).show();
+//                    String responseString = "Response Code:" + response.code() + "\n" + "Response:" + responseFromAPI.getSuccess() + "\n" + "Msg:" + responseFromAPI.getMessage();
+
                     if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP VERIFIED")) {
+
                         Intent intent = new Intent(getApplicationContext(), TripDetailActivity.class);
-                        intent.putExtra("phNo",phNo);
+                        intent.putExtra("contact",phNo);
                         startActivity(intent);
                         finish();
                         loadingDialogue.dismiss();
+
                     } else{
                         loadingDialogue.dismiss();
                         showAlertDialogue("Invalid OTP","OTP you entered, is not correct",R.drawable.ic_close_circle_line);
@@ -369,7 +359,7 @@ public class otp_check extends AppCompatActivity {
 
 
                 @Override
-                public void onFailure(Call<DataModal> call, Throwable t) {
+                public void onFailure(Call<OTPResponseModel> call, Throwable t) {
                     loadingDialogue.dismiss();
 
 //                    Toast.makeText(otp_check.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
@@ -379,7 +369,7 @@ public class otp_check extends AppCompatActivity {
 
         }
 
-    }
+
 
     private void showAlertDialogue(String title,String message,int icon) {
 

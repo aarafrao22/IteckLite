@@ -19,8 +19,6 @@ public interface RetrofitAPI2 {
 
 
         /** mine check login **/
-
-
         @POST("logincheck")
 
         //on below line we are creating a method to post our data.

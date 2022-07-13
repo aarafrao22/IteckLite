@@ -15,9 +15,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/img"
+        android:icon="@drawable/iconn"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/img"
+        android:roundIcon="@drawable/iconn"
         android:supportsRtl="true"
         android:theme="@style/Theme.ITeckLite"
         tools:targetApi="31">

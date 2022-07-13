@@ -8,7 +8,7 @@ public class GpsTime {
         this.timezone = timezone;
         this.timezone_type = timezone_type;
     }
-
+    
     public String getDate() {
         return date;
     }

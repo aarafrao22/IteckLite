@@ -20,7 +20,6 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.MediaController;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
@@ -55,8 +54,7 @@ public class splash extends AppCompatActivity {
         getWindow().setFlags(1024, 1024);
 
         sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
-         Lloginid = sh.getString("apploginid", "");
-        Toast.makeText(this, Lloginid, Toast.LENGTH_SHORT).show();
+        Lloginid = sh.getString("apploginid", "");
 
         /** For device id**/
         TelephonyManager telephonyManager;
@@ -202,23 +200,23 @@ public class splash extends AppCompatActivity {
         RetrofitAPI2 retrofitAPI = retrofit.create(RetrofitAPI2.class);
         logincheck modal = new logincheck(login_id);
         Call<ResponseLoginCheck> call = retrofitAPI.createComment(login_id);
-        Toast.makeText(splash.this, "Active", Toast.LENGTH_LONG).show();
 
         call.enqueue(new Callback<ResponseLoginCheck>() {
             @Override
             public void onResponse(Call<ResponseLoginCheck> call, Response<ResponseLoginCheck> response) {
                 ResponseLoginCheck responseFromAPI = response.body();
 
-
-                if (responseFromAPI.getSuccess().equals("false")){
-                    Intent intent = new Intent(getApplicationContext(),login_one.class);
+                if (responseFromAPI.getSuccess().equals("false")) {
+                    Intent intent = new Intent(getApplicationContext(), login_one.class);
                     startActivity(intent);
-                }else {
-                    if (responseFromAPI.getSuccess().equals("true")){
+                    finish();
+                } else {
+                    if (responseFromAPI.getSuccess().equals("true")) {
                         String contactNo = responseFromAPI.getContact();
-                        Intent intent2 = new Intent(getApplicationContext(),TripDetailActivity.class);
-                        intent2.putExtra("contact",contactNo);
+                        Intent intent2 = new Intent(getApplicationContext(), TripDetailActivity.class);
+                        intent2.putExtra("contact", contactNo);
                         startActivity(intent2);
+                        finish();
                     }
                 }
 //
@@ -238,9 +236,11 @@ public class splash extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseLoginCheck> call, Throwable t) {
-
-                Toast.makeText(splash.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "onFailure: " + t.getMessage());
+                Intent intent = new Intent(getApplicationContext(), login_one.class);
+                startActivity(intent);
+                finish();
+
 
             }
         });
