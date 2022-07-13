@@ -25,8 +25,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -62,7 +64,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
     private GoogleMap mMap;
     private BottomSheetBehavior bottomSheetBehavior;
-    ConstraintLayout layout;
+    LinearLayout layout;
     TextView txt_time, txtSpeed, txtIgnition, txtLatLong, txtVehicleNo;
 
     private RecyclerView recyclerView;
@@ -96,7 +98,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         loadingDialogue.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         loadingDialogue.setCancelable(false);
 
-
+//        Intent intent = getIntent();
+//        phNo = intent.getStringExtra("contact");
         loadingDialogue.show();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -104,7 +107,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         mapFragment.getMapAsync(this);
 
-        phNo = getIntent().getStringExtra("phNo");
+
 
         notificationWalaKaam();
         getToken();
@@ -127,7 +130,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         bottomSheetBehavior.setPeekHeight(400);
 
         try {
-            getCarData(phNo);
+            getCarData(getIntent().getStringExtra("contact"));
             loadingDialogue.dismiss();
         } catch (Exception e) {
             loadingDialogue.dismiss();
@@ -319,7 +322,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid);
         call.enqueue(new Callback<SelectedVehicleResponseModel>() {
-            @SuppressLint("SetTextI18n")
+            @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
             @Override
             public void onResponse(Call<SelectedVehicleResponseModel> call, Response<SelectedVehicleResponseModel> response) {
 
@@ -334,7 +337,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 GpsTime gpsTime = response.body().GpsTime;
                 String V_Ang = response.body().getV_Ang();
 
-                txtSpeed.setText(speed);
+                txtSpeed.setText(speed+" KM/H");
                 txtVehicleNo.setText(vehicleNo);
                 String ign;
                 if (Integer.parseInt(ignition) == 0) {
@@ -388,16 +391,25 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String currentDay = new SimpleDateFormat("dd").format(Calendar.getInstance().getTime());
                 int intDay = Integer.parseInt(vDay);
 
+                Drawable drawable1 = null;
 
                 if (hour > currentTime && intDay > Integer.parseInt(currentDay)) {
                     vehicleColor = R.drawable.gray_car;
+                    drawable1 = getDrawable(R.drawable.bg_grey);
+
                 } else if (Integer.parseInt(ignition) == 0) {
                     vehicleColor = R.drawable.red_car;
+                    drawable1 = getDrawable(R.drawable.bg_red);
+
                 } else if (Integer.parseInt(ignition) == 1 || speed.equals("0")) {
                     vehicleColor = R.drawable.green_car;
+                    drawable1 = getDrawable(R.drawable.bg_green);
                 } else {
                     vehicleColor = R.drawable.black_car;
+                    drawable1 = getDrawable(R.drawable.bg_black);
                 }
+                layout.setBackground(drawable1);
+
 
                 onMapReady(mMap);
                 loadingDialogue.dismiss();

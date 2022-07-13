@@ -1,5 +1,7 @@
 package com.itecknologigroupofcompanies.itecklite;
 
+import static android.content.ContentValues.TAG;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,15 +14,29 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.Toast;
 import android.widget.VideoView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.util.HashMap;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class splash extends AppCompatActivity {
     /**
@@ -29,6 +45,8 @@ public class splash extends AppCompatActivity {
     private final int SPLASH_DISPLAY_LENGTH = 2000;
     private VideoView clip;
     String androidId, k;
+    SharedPreferences sh;
+    String Lloginid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +54,16 @@ public class splash extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
         getWindow().setFlags(1024, 1024);
 
+        sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+         Lloginid = sh.getString("apploginid", "");
+        Toast.makeText(this, Lloginid, Toast.LENGTH_SHORT).show();
+
         /** For device id**/
         TelephonyManager telephonyManager;
         telephonyManager = (TelephonyManager) getSystemService(Context.
                 TELEPHONY_SERVICE);
         androidId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);// this is Android ID.
-
 
 
         /**Referencing Video. **/
@@ -109,7 +130,7 @@ public class splash extends AppCompatActivity {
                 }
             }, 1490);
 
-        }else {
+        } else {
             showAlertDialogue("Make sure your internet is connected");
 //            finish();
         }
@@ -131,21 +152,11 @@ public class splash extends AppCompatActivity {
                 splash.startAnimation(anim);
                 splash.setAnimation(null);
 
-                splash.this.finish();
 
-                SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
                 String fetchloginid = sh.getString("apploginid", "");
                 k = fetchloginid.toString();
 
-                if (k != null) {
-                    Intent mainIntent = new Intent(splash.this, login_one.class);
-                    splash.this.startActivity(mainIntent);
-                    finish();
-                } else {
-                    Intent mainIntent = new Intent(splash.this, login_one.class);
-                    splash.this.startActivity(mainIntent);
-                    finish();
-                }
+                postData(Lloginid);
 
 
             }
@@ -176,88 +187,94 @@ public class splash extends AppCompatActivity {
         alert11.show();
     }
 
+
+    private void postData(String login_id) {
+
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://iot.itecknologi.com/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        RetrofitAPI2 retrofitAPI = retrofit.create(RetrofitAPI2.class);
+        logincheck modal = new logincheck(login_id);
+        Call<ResponseLoginCheck> call = retrofitAPI.createComment(login_id);
+        Toast.makeText(splash.this, "Active", Toast.LENGTH_LONG).show();
+
+        call.enqueue(new Callback<ResponseLoginCheck>() {
+            @Override
+            public void onResponse(Call<ResponseLoginCheck> call, Response<ResponseLoginCheck> response) {
+                ResponseLoginCheck responseFromAPI = response.body();
+
+
+                if (responseFromAPI.getSuccess().equals("false")){
+                    Intent intent = new Intent(getApplicationContext(),login_one.class);
+                    startActivity(intent);
+                }else {
+                    if (responseFromAPI.getSuccess().equals("true")){
+                        String contactNo = responseFromAPI.getContact();
+                        Intent intent2 = new Intent(getApplicationContext(),TripDetailActivity.class);
+                        intent2.putExtra("contact",contactNo);
+                        startActivity(intent2);
+                    }
+                }
+//
+//                // String responseString = "Response Code : " + response.code() +"\n Device ID:"+responseFromAPI.getDeviceId()+ "\nEmail: " + responseFromAPI.getEmail() + "\n" + "Phone: " + responseFromAPI.getContact()+"\n"+"response:"+responseFromAPI.getSuccess()+"\n"+"Msg:"+responseFromAPI.getMessage();
+//                String responseString = "Response Code:" + response.code() + "\n" + "Response:" + responseFromAPI.getSuccess();
+//                Toast.makeText(splash.this, responseString, Toast.LENGTH_SHORT).show();
+//                if (responseFromAPI.getSuccess().equals("true")) {
+//
+//                    Intent intent = new Intent(getApplicationContext(), TripDetailActivity.class);
+//                    startActivity(intent);
+//
+//                    Toast.makeText(splash.this, "Done", Toast.LENGTH_SHORT).show();
+//                } else
+//
+//                    return;
+            }
+
+            @Override
+            public void onFailure(Call<ResponseLoginCheck> call, Throwable t) {
+
+                Toast.makeText(splash.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "onFailure: " + t.getMessage());
+
+            }
+        });
+
+//            call.enqueue(new Callback<logincheck>() {
+//                @Override
+//                public void onResponse(@NonNull Call<logincheck> call, @NonNull Response<logincheck> response) {
+//
+//                    logincheck responseFromAPI = response.body();
+//
+//                    // String responseString = "Response Code : " + response.code() +"\n Device ID:"+responseFromAPI.getDeviceId()+ "\nEmail: " + responseFromAPI.getEmail() + "\n" + "Phone: " + responseFromAPI.getContact()+"\n"+"response:"+responseFromAPI.getSuccess()+"\n"+"Msg:"+responseFromAPI.getMessage();
+//                    String responseString = "Response Code:" + response.code() + "\n" + "Response:" + responseFromAPI.getsuccess();
+//
+//
+//                    Toast.makeText(splash.this, responseString, Toast.LENGTH_SHORT).show();
+//                    if (responseFromAPI.getsuccess().equals("true")) {
+//                        Intent intent = new Intent(getApplicationContext(), TripDetailActivity.class);
+//                        startActivity(intent);
+//                        Toast.makeText(splash.this, "Done", Toast.LENGTH_SHORT).show();
+//                    } else
+//                        //Toast.makeText(splash.this,"Something went wrong.", Toast.LENGTH_SHORT).show();
+//                        return;
+//
+//                }
+//
+//                @Override
+//                public void onFailure(Call<logincheck> call, Throwable t) {
+//                    //responseTV.setText("Error found is : " + t.getMessage());
+//                    Toast.makeText(splash.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
+//                }
+//            });
+
+    }
 }
 
-
-   /* private void postData(String login_id,String device_id) {
-
-
-        // on below line we are creating a retrofit
-        // builder and passing our base url
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://iot.itecknologi.com/mobile/checklogin.php/")
-                // as we are sending data in json format so
-                // we have to add Gson converter factory
-                .addConverterFactory(GsonConverterFactory.create())
-                // at last we are building our retrofit builder.
-                .build();
-        // below line is to create an instance for our retrofit api class.
-        RetrofitAPI2 retrofitAPI = retrofit.create(RetrofitAPI2.class);
-
-        // passing data from our text fields to our modal class.
-
-
-        logincheck modal = new logincheck(login_id,device_id);
-
-
-        if(modal.equals(null) && modal.equals(""))
-        {
-            Toast.makeText(splash.this, "Modal Is Empty", Toast.LENGTH_LONG).show();
-
-        }
-        else {
-            HashMap<String, String> fields = new HashMap<>();
-            String device_idd = androidId;
-            String login_idd = k;
-            fields.put("login_id", login_idd);
-            fields.put("device_id", device_idd);
-
-
-
-            Call<logincheck> call = retrofitAPI.createComment(fields);
-            Toast.makeText(splash.this, "Active", Toast.LENGTH_LONG).show();
-
-
-            call.enqueue(new Callback<logincheck>() {
-
-
-
-                @Override
-                public void onResponse(Call<logincheck> call, Response<logincheck> response) {
-
-                    logincheck responseFromAPI = response.body();
-
-                    // on below line we are getting our data from modal class and adding it to our string.
-                    // String responseString = "Response Code : " + response.code() +"\n Device ID:"+responseFromAPI.getDeviceId()+ "\nEmail: " + responseFromAPI.getEmail() + "\n" + "Phone: " + responseFromAPI.getContact()+"\n"+"response:"+responseFromAPI.getSuccess()+"\n"+"Msg:"+responseFromAPI.getMessage();
-                    String responseString = "Response Code:" + response.code() + "\n" + "Response:" + responseFromAPI.getsuccess() ;
-
-
-
-
-
-
-                    Toast.makeText(splash.this, responseString, Toast.LENGTH_SHORT).show();
-                    if(responseFromAPI.getsuccess().equals("true"))
-                    {
-                        Intent intent= new Intent(getApplicationContext(),MainActivity.class);
-                        startActivity(intent);
-                        Toast.makeText(splash.this, "Done", Toast.LENGTH_SHORT).show();
-                    }
-                    else
-                        //Toast.makeText(splash.this,"Something went wrong.", Toast.LENGTH_SHORT).show();
-                    return;
-
-                }
-
-                @Override
-                public void onFailure(Call<logincheck> call, Throwable t) {
-                    // setting text to our text view when
-                    // we get error response from API.
-                    //responseTV.setText("Error found is : " + t.getMessage());
-                    Toast.makeText(splash.this, "Error Found:"+t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-
-}*/
 
 

@@ -52,14 +52,13 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <LinearLayout
                     android:id="@+id/txtNumP"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="4dp"
                     android:background="@drawable/bg"
-                    android:backgroundTint="@color/dark_grey"
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:paddingStart="8dp"
@@ -94,7 +93,7 @@
                         app:layout_constraintTop_toTopOf="@+id/txt_car_no"
                         app:tint="@color/white" />
 
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
 
 
                 <TextView

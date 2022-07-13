@@ -47,7 +47,8 @@ public class login_one extends AppCompatActivity {
     private VideoView regclip;
     private Dialog loadingDialogue;
 
-    String tokenn = "1", responsDeviceid;
+    String tokenn;
+    String responsDeviceid;
     private EditText ContactNo, Email;
     String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+.[a-z]+";
     String validNumber = "^[+]?[0-9]{8,15}$";
@@ -126,7 +127,6 @@ public class login_one extends AppCompatActivity {
 
                         // Get new FCM registration token
                         String token = task.getResult();
-
                         tokenn = token;
 //                         Toast.makeText(login_one.this, tokenn, Toast.LENGTH_SHORT).show();
                         // Log and toast
@@ -168,8 +168,6 @@ public class login_one extends AppCompatActivity {
                         } else Email.setError("Enter Valid Email");
                     } else ContactNo.setError("Enter Contact No");
                 } else Email.setError("Enter Email");
-
-
             }
         });
     }
@@ -225,10 +223,12 @@ public class login_one extends AppCompatActivity {
                     SharedPreferences sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE);
                     SharedPreferences.Editor myEdit = sharedPreferences.edit();
                     myEdit.putString("apploginid", responsDeviceid);
+                    myEdit.apply();
+                    Toast.makeText(login_one.this, "App login ID "+responsDeviceid+" is saved", Toast.LENGTH_SHORT).show();
 
                     if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP Sent")) {
                         Intent intent = new Intent(getApplicationContext(), otp_check.class);
-                        intent.putExtra("phNo",c);
+                        intent.putExtra("contact",c);
                         startActivity(intent);
                         finish();
                         loadingDialogue.dismiss();
