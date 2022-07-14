@@ -92,16 +92,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         mBuilder = new NotificationCompat.Builder(getApplicationContext(), "notify_001");
 
 
-        @SuppressLint("RemoteViewLayout")
-        RemoteViews r = new RemoteViews(getPackageName(), R.layout.expanded_notification);
-
-        mBuilder.setCustomBigContentView(r);
-        mBuilder.setStyle(new NotificationCompat.DecoratedCustomViewStyle());
-
-
-//        r.setImageViewResource(R.id.icon, R.drawable.img);
-        r.setTextViewText(R.id.title2, title);
-        r.setTextViewText(R.id.text2, messageBody);
+//        @SuppressLint("RemoteViewLayout")
+//        RemoteViews r = new RemoteViews(getPackageName(), R.layout.expanded_notification);
+//        mBuilder.setCustomBigContentView(r);
+//        mBuilder.setStyle(new NotificationCompat.DecoratedCustomViewStyle());
+////        r.setImageViewResource(R.id.icon, R.drawable.img);
+//        r.setTextViewText(R.id.title2, title);
+//        r.setTextViewText(R.id.text2, messageBody);
 
         contentView = new RemoteViews(getPackageName(), R.layout.notification);
         contentView.setTextViewText(R.id.title, title);
@@ -137,16 +134,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             contentView.setImageViewResource(R.id.image, R.drawable.img_logo);
 
 
-        mBuilder.setSmallIcon(R.drawable.img_logo_uni);
+//        mBuilder.setSmallIcon(R.drawable.img_logo_uni);
 
 
         mBuilder.setAutoCancel(false);
         mBuilder.setContentTitle(title);
         mBuilder.setContentText(messageBody);
+        mBuilder.setCustomContentView(contentView);
         mBuilder.setPriority(Notification.PRIORITY_HIGH);
         mBuilder.setOnlyAlertOnce(true);
         mBuilder.build().flags = Notification.FLAG_NO_CLEAR | Notification.PRIORITY_HIGH;
-        mBuilder.setContent(contentView);
+//        mBuilder.setContent(contentView);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelId = "channel_id";

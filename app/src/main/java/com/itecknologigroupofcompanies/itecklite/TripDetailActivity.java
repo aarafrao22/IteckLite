@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -32,6 +33,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -39,6 +41,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -65,6 +68,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private BottomSheetBehavior bottomSheetBehavior;
     LinearLayout layout;
     TextView txt_time, txtSpeed, txtIgnition, txtLatLong, txtVehicleNo;
+    private Runnable runnableCode;
+    Handler handler = new Handler();
+    MarkerOptions markerOptions;
+    Marker mMarker;
 
     private RecyclerView recyclerView;
     TripAdapter adapter;
@@ -106,7 +113,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 .findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(this);
-
 
 
         notificationWalaKaam();
@@ -160,7 +166,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 assert response.body() != null;
                 String success = response.body().getSuccess();
 
-                if (success.equals("true")){
+                if (success.equals("true")) {
                     String name = response.body().getName();
                     txtUserName.setText("Hi, " + name);
                     List<VehicleModel> vehicleModelArrayList = response.body().vehicle;
@@ -172,7 +178,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     }
 
                     try {
-                        getSelectedCarData(VehicleId.get(0),VehicleObjId.get(0));
+                        getSelectedCarData(VehicleId.get(0), VehicleObjId.get(0));
                     } catch (Exception e) {
                     }
                     txtNoCar.setText(VehicleRegId.get(0).toString());
@@ -275,8 +281,15 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         mMap.clear();
         myCarLocation = new LatLng(locationY, locationX);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCarLocation, 18f));
-        mMap.addMarker(new MarkerOptions().position(myCarLocation).title("Your Location")
-                .icon(bitmapDescriptorFromVector(this, vehicleColor)).rotation(angle));
+
+        markerOptions = new MarkerOptions().position(myCarLocation).title("Your Location")
+                .icon(bitmapDescriptorFromVector(this, vehicleColor)).rotation(angle);
+        mMarker = mMap.addMarker(markerOptions);
+
+        //        mMap.addMarker(markerOptions);
+
+//        mMap.addMarker(new MarkerOptions().position(myCarLocation).title("Your Location")
+//                .icon(bitmapDescriptorFromVector(this, vehicleColor)).rotation(angle));
 
 
     }
@@ -301,7 +314,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String selectedObjID = VehicleObjId.get(item);
 
                 try {
-                    getSelectedCarData(selectedCarVid,selectedObjID);
+                    getSelectedCarData(selectedCarVid, selectedObjID);
                 } catch (Exception e) {
 
                 }
@@ -313,7 +326,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         alert.show();
     }
 
-    private void getSelectedCarData(String selectedCarVid,String selectedCarObjId) {
+    private void getSelectedCarData(String selectedCarVid, String selectedCarObjId) {
         loadingDialogue.show();
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -323,7 +336,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
-        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid,selectedCarObjId);
+        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid, selectedCarObjId);
         call.enqueue(new Callback<SelectedVehicleResponseModel>() {
             @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
             @Override
@@ -338,91 +351,137 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 String x = response.body().getX();
                 String y = response.body().getY();
                 GpsTime gpsTime = response.body().GpsTime;
-                String V_Ang = response.body().getV_Ang();
+                String V_Ang = response.body().getAng();
+                String CustName = response.body().getCustName();
 
-                txtSpeed.setText(speed+" KM/H");
-                txtVehicleNo.setText(vehicleNo);
-                String ign;
-                if (Integer.parseInt(ignition) == 0) {
-                    ign = "Ignition OFF";
+                if (location != null && health != null && volt != null && ignition != null && speed != null && vehicleNo != null && x != null && y != null && gpsTime != null && V_Ang != null) {
+                    txtSpeed.setText(speed + " KM/H");
+                    txtVehicleNo.setText(vehicleNo);
+                    String ign;
+                    if (Integer.parseInt(ignition) == 0) {
+                        ign = "Ignition OFF";
+                    } else {
+                        ign = "Ignition ON";
+                    }
+                    txtIgnition.setText(ign);
+                    txtLatLong.setText(y + " , " + x);
+                    txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
+                    String string = gpsTime.date;
+                    String[] parts = string.split(" ");
+                    String date = parts[0]; // 004
+                    String time = parts[1];
+                    txtUserName.setText("Hi, " + CustName);
+                    String[] dayyyy = date.split("-");
+                    String vDay = dayyyy[2];
+
+                    txtDate.setText(date);
+                    locationX = Double.parseDouble(x);
+                    locationY = Double.parseDouble(y);
+                    angle = Integer.parseInt(V_Ang);
+
+
+                    String[] parts2 = time.split(":");
+                    int hour = Integer.parseInt(parts2[0]);
+                    String minute = parts2[1];
+                    String timeStatus;
+
+                    String finalHour;
+
+                    if (hour > 12) {
+                        finalHour = convertTime(String.valueOf(hour));
+                        timeStatus = "PM";
+                    } else {
+                        finalHour = String.valueOf(hour);
+                        timeStatus = "AM";
+                    }
+
+                    txt_time.setText(finalHour + ":" + minute + " " + timeStatus);
+
+
+                    @SuppressLint("SimpleDateFormat")
+                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                    String s = sdf.format(new Date());
+                    String[] tmp1 = s.split(":");
+                    int currentTime = Integer.parseInt(tmp1[0]);
+
+
+                    @SuppressLint("SimpleDateFormat")
+                    String currentDay = new SimpleDateFormat("dd").format(Calendar.getInstance().getTime());
+                    int intDay = Integer.parseInt(vDay);
+
+                    Drawable drawable1 = null;
+
+                    if (hour > currentTime && intDay > Integer.parseInt(currentDay)) {
+                        vehicleColor = R.drawable.gray_car;
+                        drawable1 = getDrawable(R.drawable.bg_grey);
+
+                    } else if (Integer.parseInt(ignition) == 0) {
+                        vehicleColor = R.drawable.red_car;
+                        drawable1 = getDrawable(R.drawable.bg_red);
+
+                    } else if (Integer.parseInt(ignition) == 1 || speed.equals("0")) {
+                        vehicleColor = R.drawable.green_car;
+                        drawable1 = getDrawable(R.drawable.bg_green);
+                    } else {
+                        vehicleColor = R.drawable.black_car;
+                        drawable1 = getDrawable(R.drawable.bg_black);
+                    }
+                    layout.setBackground(drawable1);
+
+
+                    onMapReady(mMap);
+                    loadingDialogue.dismiss();
+                    updateMapAfter30Sec();
                 } else {
-                    ign = "Ignition ON";
+                    Log.d(TAG, "onResponse: Something is null");
+                    Toast.makeText(TripDetailActivity.this, "Vehicle Not Found", Toast.LENGTH_SHORT).show();
+                    txtSpeed.setText("-" + " KM/H");
+                    txtIgnition.setText("-");
+                    txtLatLong.setText("-");
+                    txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + "-");
+                    txtDate.setText("00-00-0000");
+                    txt_time.setText("00:00:00");
+                    txtUserName.setText(CustName);
+                    mMarker.remove();
+                    Drawable drawable = getDrawable(R.drawable.bg_grey);
+                    layout.setBackground(drawable);
+                    loadingDialogue.dismiss();
+
                 }
-                txtIgnition.setText(ign);
-                txtLatLong.setText(x + " , " + y);
-                txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
-                String string = gpsTime.date;
-                String[] parts = string.split(" ");
-                String date = parts[0]; // 004
-                String time = parts[1];
-
-                String[] dayyyy = date.split("-");
-                String vDay = dayyyy[2];
-
-                txtDate.setText(date);
-                locationX = Double.parseDouble(x);
-                locationY = Double.parseDouble(y);
-                angle = Integer.parseInt(V_Ang);
-
-
-                String[] parts2 = time.split(":");
-                int hour = Integer.parseInt(parts2[0]);
-                String minute = parts2[1];
-                String timeStatus;
-
-                String finalHour;
-
-                if (hour > 12) {
-                    finalHour = convertTime(String.valueOf(hour));
-                    timeStatus = "PM";
-                } else {
-                    finalHour = String.valueOf(hour);
-                    timeStatus = "AM";
-                }
-
-                txt_time.setText(finalHour + ":" + minute + " " + timeStatus);
-
-
-                @SuppressLint("SimpleDateFormat")
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-                String s = sdf.format(new Date());
-                String[] tmp1 = s.split(":");
-                int currentTime = Integer.parseInt(tmp1[0]);
-
-
-                @SuppressLint("SimpleDateFormat")
-                String currentDay = new SimpleDateFormat("dd").format(Calendar.getInstance().getTime());
-                int intDay = Integer.parseInt(vDay);
-
-                Drawable drawable1 = null;
-
-                if (hour > currentTime && intDay > Integer.parseInt(currentDay)) {
-                    vehicleColor = R.drawable.gray_car;
-                    drawable1 = getDrawable(R.drawable.bg_grey);
-
-                } else if (Integer.parseInt(ignition) == 0) {
-                    vehicleColor = R.drawable.red_car;
-                    drawable1 = getDrawable(R.drawable.bg_red);
-
-                } else if (Integer.parseInt(ignition) == 1 || speed.equals("0")) {
-                    vehicleColor = R.drawable.green_car;
-                    drawable1 = getDrawable(R.drawable.bg_green);
-                } else {
-                    vehicleColor = R.drawable.black_car;
-                    drawable1 = getDrawable(R.drawable.bg_black);
-                }
-                layout.setBackground(drawable1);
-
-
-                onMapReady(mMap);
-                loadingDialogue.dismiss();
             }
 
             @Override
             public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
+
                 loadingDialogue.dismiss();
+                Toast.makeText(TripDetailActivity.this, "Data Not Available", Toast.LENGTH_SHORT).show();
+                mMap.clear();
+                txtSpeed.setText("-" + " KM/H");
+                txtIgnition.setText("-");
+                txtLatLong.setText("-");
+                txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + "-");
+                txtDate.setText("00-00-0000");
+                txt_time.setText("00:00:00");
+                markerOptions.visible(false);
+                txtUserName.setText("---");
+                Drawable drawable = getDrawable(R.drawable.bg_grey);
+                layout.setBackground(drawable);
+                mMarker.remove();
             }
         });
+    }
+
+    private void updateMapAfter30Sec() {
+
+        runnableCode = new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: MapUpdated");
+                onMapReady(mMap);
+                handler.postDelayed(runnableCode, 30000);
+            }
+        };
+        handler.post(runnableCode);
     }
 
     private String convertTime(String time1) {

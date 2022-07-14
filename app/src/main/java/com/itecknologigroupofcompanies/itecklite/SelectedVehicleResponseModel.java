@@ -11,11 +11,11 @@ public class SelectedVehicleResponseModel {
     String VehicleNo;
     String X;
     String Y;
-    String V_Ang;
+    String Ang;
+    String CustName;
 
 
-    public SelectedVehicleResponseModel(String batteryHealth, String batteryVolt, com.itecknologigroupofcompanies.itecklite.GpsTime gpsTime,
-                                        String ignition, String location, String speed, String vehicleNo, String x, String y, String v_Ang) {
+    public SelectedVehicleResponseModel(String batteryHealth, String batteryVolt, com.itecknologigroupofcompanies.itecklite.GpsTime gpsTime, String ignition, String location, String speed, String vehicleNo, String x, String y, String ang, String custName) {
         BatteryHealth = batteryHealth;
         BatteryVolt = batteryVolt;
         GpsTime = gpsTime;
@@ -25,7 +25,25 @@ public class SelectedVehicleResponseModel {
         VehicleNo = vehicleNo;
         X = x;
         Y = y;
-        V_Ang = v_Ang;
+        Ang = ang;
+        CustName = custName;
+    }
+
+
+    public String getCustName() {
+        return CustName;
+    }
+
+    public void setCustName(String custName) {
+        CustName = custName;
+    }
+
+    public String getAng() {
+        return Ang;
+    }
+
+    public void setAng(String ang) {
+        Ang = ang;
     }
 
     public String getBatteryHealth() {
@@ -100,11 +118,4 @@ public class SelectedVehicleResponseModel {
         Y = y;
     }
 
-    public String getV_Ang() {
-        return V_Ang;
-    }
-
-    public void setV_Ang(String v_Ang) {
-        V_Ang = v_Ang;
-    }
 }
