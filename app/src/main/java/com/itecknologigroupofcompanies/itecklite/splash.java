@@ -37,10 +37,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class splash extends AppCompatActivity {
+public class splash extends AppCompatActivity{
     /**
      * Duration of wait
      **/
+
     private final int SPLASH_DISPLAY_LENGTH = 2000;
     private VideoView clip;
     String androidId, k;
@@ -114,7 +115,10 @@ public class splash extends AppCompatActivity {
          * and close this Splash-Screen after some seconds.*/
         checkConnection();
 
+
     }
+
+
 
     private void checkConnection() {
         ConnectivityManager manager = (ConnectivityManager) getApplicationContext()

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="2dp"
-    android:layout_marginStart="4dp"
+    android:padding="14dp"
     android:weightSum="100">
 
     <LinearLayout
@@ -14,6 +14,36 @@
         android:layout_height="wrap_content"
         android:layout_weight="80"
         android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@mipmap/iconn" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:layout_marginStart="4dp"
+                android:textSize="11sp"/>
+
+            <TextView
+                android:id="@+id/txtTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="7:04 pm"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/black"
+                android:textSize="11sp"/>
+
+        </LinearLayout>
+
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
@@ -21,7 +51,7 @@
             android:maxLines="1"
             android:textColor="@color/black"
             android:textSize="14sp"
-            tools:text="Title of the notification" />
+            tools:text="Ignition on" />
 
         <TextView
             android:id="@+id/text"
@@ -29,20 +59,17 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:textSize="13sp"
-            tools:text="Description of the notification" />
+            tools:text="just now" />
 
     </LinearLayout>
 
     <ImageView
         android:id="@+id/image"
-        android:layout_width="65dp"
-        android:layout_height="65dp"
-        android:layout_marginEnd="4dp"
-        android:layout_weight="20"
-        android:padding="8dp"
-        android:layout_gravity="center_vertical"
-        android:scaleType="centerCrop"
-        android:src="@drawable/img_logo" />
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:layout_weight="30"
+        android:layout_gravity="center"
+        android:src="@mipmap/iconn" />
 
 
 </LinearLayout>

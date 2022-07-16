@@ -15,7 +15,7 @@ public interface RetrofitAPI {
 
     @POST("DataModal")
 
-    //on below line we are creating a method to post our data.
+        //on below line we are creating a method to post our data.
     Call<DataModal> createPost(@Body DataModal dataModal);
 
     @FormUrlEncoded
@@ -34,6 +34,13 @@ public interface RetrofitAPI {
             @Field("OTP") String OTP,
             @Field("device_id") String device_id);
 
+    @FormUrlEncoded
+    @POST("UpdatedFCMResponse")
+    Call<UpdatedFCMResponse> sendUpdatedFCM(
+            @Field("loginid") String loginid,
+            @Field("deviceid") String deviceid,
+            @Field("fcmtoken") String updatedFCM);
+
 
     @FormUrlEncoded
     @POST("ResponseModel")
@@ -42,7 +49,7 @@ public interface RetrofitAPI {
 
     @FormUrlEncoded
     @POST("SelectedVehicleResponseModel")
-    Call<SelectedVehicleResponseModel> getSingleCarData(@Field("veh_id") String selectedVehicle,@Field("object_id") String selectedVehicleObjId);
+    Call<SelectedVehicleResponseModel> getSingleCarData(@Field("veh_id") String selectedVehicle, @Field("object_id") String selectedVehicleObjId);
 
 }
 

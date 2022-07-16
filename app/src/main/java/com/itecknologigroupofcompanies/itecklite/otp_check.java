@@ -27,6 +27,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.stfalcon.smsverifycatcher.OnSmsCatchListener;
@@ -53,6 +54,7 @@ public class otp_check extends AppCompatActivity {
     String deviceId;
     SharedPreferences sh;
     String Lloginid;
+    String updatedFCM;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,7 @@ public class otp_check extends AppCompatActivity {
         phNo = getIntent().getStringExtra("contact");
         deviceId = getIntent().getStringExtra("deviceId");
         Lloginid = sh.getString("apploginid", "");
+        updatedFCM = sh.getString("RefreshedToken", "");
 
 
         loadingDialogue = new Dialog(this);
@@ -138,9 +141,11 @@ public class otp_check extends AppCompatActivity {
                 String c = contact.trim();
                 String d = "fcm";
 
-                Log.d(TAG, "onClick: "+"LoginID: "+Lloginid+"OTP: "+b+"DeviceID: "+deviceId);
+                Log.d(TAG, "onClick: " + "LoginID: " + Lloginid + "OTP: " + b + "DeviceID: " + deviceId);
 
-                postData(Lloginid,b,deviceId);
+                postData(Lloginid, b, deviceId);
+
+                sendUpdatedFCM(Lloginid, updatedFCM, deviceId);
             }
         });
 
@@ -201,6 +206,44 @@ public class otp_check extends AppCompatActivity {
 
         });
         smsVerifyCatcher.onStart();
+    }
+
+    private void sendUpdatedFCM(String LoginID, String updatedFCM, String DeviceID) {
+
+        loadingDialogue.show();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://iot.itecknologi.com/mobile/updateFCMtoken.php/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
+        Call<UpdatedFCMResponse> call = retrofitAPI.sendUpdatedFCM(LoginID, DeviceID,updatedFCM);
+
+        call.enqueue(new Callback<UpdatedFCMResponse>() {
+            @Override
+            public void onResponse(Call<UpdatedFCMResponse> call, retrofit2.Response<UpdatedFCMResponse> response) {
+
+                UpdatedFCMResponse up = response.body();
+                assert up != null;
+                String message = up.getMessage();
+                if (message.equals("success")) {
+                    Toast.makeText(otp_check.this, "FCM updated", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(otp_check.this, "FCM :( nhi gaya", Toast.LENGTH_SHORT).show();
+                }
+                loadingDialogue.dismiss();
+            }
+
+
+            @Override
+            public void onFailure(Call<UpdatedFCMResponse> call, Throwable t) {
+                loadingDialogue.dismiss();
+                Toast.makeText(otp_check.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
     }
 
 
@@ -288,7 +331,6 @@ public class otp_check extends AppCompatActivity {
             fields.put("FcmToken", d);
 
 
-
 //            Toast.makeText(otp_check.this, "Active", Toast.LENGTH_LONG).show();
             Call<DataModal> call = retrofitAPI.createComment(fields);
 
@@ -329,49 +371,48 @@ public class otp_check extends AppCompatActivity {
 
         RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
-        Call<OTPResponseModel> call = retrofitAPI.checkOTP(LoginID,otp,DeviceID);
+        Call<OTPResponseModel> call = retrofitAPI.checkOTP(LoginID, otp, DeviceID);
 
-            call.enqueue(new Callback<OTPResponseModel>() {
-                @Override
-                public void onResponse(Call<OTPResponseModel> call, retrofit2.Response<OTPResponseModel> response) {
+        call.enqueue(new Callback<OTPResponseModel>() {
+            @Override
+            public void onResponse(Call<OTPResponseModel> call, retrofit2.Response<OTPResponseModel> response) {
 
-                    OTPResponseModel responseFromAPI = response.body();
-                    String verification = responseFromAPI.getMessage();
-                    String Success = responseFromAPI.getSuccess();
+                OTPResponseModel responseFromAPI = response.body();
+                String verification = responseFromAPI.getMessage();
+                String Success = responseFromAPI.getSuccess();
 
 //                    String responseString = "Response Code:" + response.code() + "\n" + "Response:" + responseFromAPI.getSuccess() + "\n" + "Msg:" + responseFromAPI.getMessage();
 
-                    if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP VERIFIED")) {
+                if (responseFromAPI.getSuccess().equals("true") && responseFromAPI.getMessage().equals("OTP VERIFIED")) {
 
-                        Intent intent = new Intent(getApplicationContext(), TripDetailActivity.class);
-                        intent.putExtra("contact",phNo);
-                        startActivity(intent);
-                        finish();
-                        loadingDialogue.dismiss();
-
-                    } else{
-                        loadingDialogue.dismiss();
-                        showAlertDialogue("Invalid OTP","OTP you entered, is not correct",R.drawable.ic_close_circle_line);
-                        return;
-                    }
-
-                }
-
-
-                @Override
-                public void onFailure(Call<OTPResponseModel> call, Throwable t) {
+                    Intent intent = new Intent(getApplicationContext(), TripDetailActivity.class);
+                    intent.putExtra("contact", phNo);
+                    startActivity(intent);
+                    finish();
                     loadingDialogue.dismiss();
 
-//                    Toast.makeText(otp_check.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
+                } else {
+                    loadingDialogue.dismiss();
+                    showAlertDialogue("Invalid OTP", "OTP you entered, is not correct", R.drawable.ic_close_circle_line);
+                    return;
                 }
-            });
+
+            }
 
 
-        }
+            @Override
+            public void onFailure(Call<OTPResponseModel> call, Throwable t) {
+                loadingDialogue.dismiss();
+
+//                    Toast.makeText(otp_check.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
 
 
+    }
 
-    private void showAlertDialogue(String title,String message,int icon) {
+
+    private void showAlertDialogue(String title, String message, int icon) {
 
         AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
         builder1.setTitle(title);

@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 //import com.google.firebase.iid.FirebaseInstanceId;
@@ -152,7 +154,11 @@ public class login_one extends AppCompatActivity {
                                 String b = Email.getText().toString().trim();
                                 String c = ContactNo.getText().toString().trim();
                                 String d = tokenn.trim();
-                                postData(a, b, c, d);
+                                try {
+                                    postData(a, b, c, d);
+                                }catch (Exception e){
+                                    Toast.makeText(login_one.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
 
                         } else Email.setError("Enter Valid Email");
                     } else ContactNo.setError("Enter Contact No");
@@ -161,6 +167,7 @@ public class login_one extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("HardwareIds")
     private void postData(String device_id, String email, String contact, String FcmToken) {
         loadingDialogue.show();
 
@@ -238,6 +245,7 @@ public class login_one extends AppCompatActivity {
 //                    Toast.makeText(login_one.this, "Error Found:" + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+
         }
 
     }

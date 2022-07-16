@@ -1,16 +1,14 @@
 package com.itecknologigroupofcompanies.itecklite;
 
 import static android.content.ContentValues.TAG;
-
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
@@ -18,7 +16,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.Notification;
@@ -26,14 +23,13 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -49,13 +45,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.messaging.FirebaseMessaging;
-
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -68,10 +63,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private BottomSheetBehavior bottomSheetBehavior;
     LinearLayout layout;
     TextView txt_time, txtSpeed, txtIgnition, txtLatLong, txtVehicleNo;
-    private Runnable runnableCode;
-    Handler handler = new Handler();
     MarkerOptions markerOptions;
     Marker mMarker;
+
+    Drawable drawable1;
 
     private RecyclerView recyclerView;
     TripAdapter adapter;
@@ -79,6 +74,11 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     ArrayList<String> VehicleId = new ArrayList<>();
     ArrayList<String> VehicleRegId = new ArrayList<>();
     ArrayList<String> VehicleObjId = new ArrayList<>();
+    int i = 0;
+
+    String selectedCarVid;
+    String selectedObjID;
+
     TextView txtNoCar, txtUserName, txtVehicleDetails, txtDate;
     private Dialog loadingDialogue;
     LatLng myCarLocation;
@@ -86,6 +86,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     double locationY;
     int angle = 90;
     int vehicleColor = R.drawable.black_car;
+    int bgDrawable = R.drawable.bg_red;
 
     private static RemoteViews contentView;
     private static Notification notification;
@@ -94,10 +95,18 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private static NotificationCompat.Builder mBuilder;
     String phNo;
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trip_detail);
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        @SuppressLint("InvalidWakeLockTag")
+        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        wl.acquire(10*60*1000L /*10 minutes*/);
+
+        wl.release();
 
         loadingDialogue = new Dialog(this);
         loadingDialogue.setContentView(R.layout.loading);
@@ -114,10 +123,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         mapFragment.getMapAsync(this);
 
-
         notificationWalaKaam();
         getToken();
-
 
         layout = findViewById(R.id.txtNumP);
         txtSpeed = findViewById(R.id.txtSpeed);
@@ -137,9 +144,15 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         try {
             getCarData(getIntent().getStringExtra("contact"));
+//            getCarData("03000546380");
+            drawable1 = getDrawable(bgDrawable);
+            layout.setBackground(drawable1);
             loadingDialogue.dismiss();
+
         } catch (Exception e) {
+
             loadingDialogue.dismiss();
+
         }
 
 //        rvInitialization();
@@ -177,8 +190,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                         VehicleObjId.add(vehicleModel.getObject_id());
                     }
 
+                    selectedCarVid = VehicleId.get(i);
+                    selectedObjID = VehicleObjId.get(i);
+
                     try {
                         getSelectedCarData(VehicleId.get(0), VehicleObjId.get(0));
+
                     } catch (Exception e) {
                     }
                     txtNoCar.setText(VehicleRegId.get(0).toString());
@@ -310,8 +327,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         alt_bld.setSingleChoiceItems(VehicleRegId.toArray(new String[0]), -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
                 txtNoCar.setText(VehicleRegId.get(item).toString());
-                String selectedCarVid = VehicleId.get(item);
-                String selectedObjID = VehicleObjId.get(item);
+                i = item;
+                selectedCarVid = VehicleId.get(item);
+                selectedObjID = VehicleObjId.get(item);
 
                 try {
                     getSelectedCarData(selectedCarVid, selectedObjID);
@@ -329,6 +347,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private void getSelectedCarData(String selectedCarVid, String selectedCarObjId) {
         loadingDialogue.show();
 
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://iot.itecknologi.com/mobile/get_vehicle_latest_info.php/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -338,6 +357,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid, selectedCarObjId);
         call.enqueue(new Callback<SelectedVehicleResponseModel>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
             @Override
             public void onResponse(Call<SelectedVehicleResponseModel> call, Response<SelectedVehicleResponseModel> response) {
@@ -366,13 +386,15 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     txtIgnition.setText(ign);
                     txtLatLong.setText(y + " , " + x);
                     txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
-                    String string = gpsTime.date;
-                    String[] parts = string.split(" ");
+                    String stringTime = gpsTime.date;
+                    String[] parts = stringTime.split(" ");
                     String date = parts[0]; // 004
                     String time = parts[1];
                     txtUserName.setText("Hi, " + CustName);
+
                     String[] dayyyy = date.split("-");
                     String vDay = dayyyy[2];
+                    String vMonth = dayyyy[1];
 
                     txtDate.setText(date);
                     locationX = Double.parseDouble(x);
@@ -399,36 +421,56 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
 
                     @SuppressLint("SimpleDateFormat")
-                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-                    String s = sdf.format(new Date());
-                    String[] tmp1 = s.split(":");
-                    int currentTime = Integer.parseInt(tmp1[0]);
+                    String sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 
+                    String dateStart = stringTime;
+                    Log.d(TAG, "onResponse: dateStart"+dateStart);
+                    String dateStop = sdf.toString();
+                    Log.d(TAG, "onResponse: dateStop "+dateStop);
 
                     @SuppressLint("SimpleDateFormat")
-                    String currentDay = new SimpleDateFormat("dd").format(Calendar.getInstance().getTime());
-                    int intDay = Integer.parseInt(vDay);
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    long diffHours = 0;
 
-                    Drawable drawable1 = null;
+                    Date d1 = null;
+                    Date d2 = null;
+                    try {
+                        d1 = format.parse(dateStart);
+                        d2 = format.parse(dateStop);
+                        long diff = d2.getTime() - d1.getTime();
 
-                    if (hour > currentTime && intDay > Integer.parseInt(currentDay)) {
-                        vehicleColor = R.drawable.gray_car;
-                        drawable1 = getDrawable(R.drawable.bg_grey);
+                        long diffSeconds = diff / 1000 % 60;
+                        long diffMinutes = diff / (60 * 1000) % 60;
+                        diffHours = diff / (60 * 60 * 1000);
 
-                    } else if (Integer.parseInt(ignition) == 0) {
-                        vehicleColor = R.drawable.red_car;
-                        drawable1 = getDrawable(R.drawable.bg_red);
+                        Log.d(TAG, "onResponse: diffSeconds " + diffSeconds);
+                        Log.d(TAG, "onResponse: diffMinutes " + diffMinutes);
+                        Log.d(TAG, "onResponse: diffHours " + diffHours);
 
-                    } else if (Integer.parseInt(ignition) == 1 || speed.equals("0")) {
-                        vehicleColor = R.drawable.green_car;
-                        drawable1 = getDrawable(R.drawable.bg_green);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (diffHours <= 24) {
+                        if (Integer.parseInt(ignition) == 0) {
+                            vehicleColor = R.drawable.red_car;
+                            bgDrawable = R.drawable.bg_red;
+                            drawable1 = getDrawable(bgDrawable);
+
+                        } else if (Integer.parseInt(ignition) == 1 || speed.equals("0")) {
+                            vehicleColor = R.drawable.green_car;
+                            bgDrawable = R.drawable.bg_green;
+                            drawable1 = getDrawable(bgDrawable);
+                        }
+                        layout.setBackground(drawable1);
+
                     } else {
-                        vehicleColor = R.drawable.black_car;
-                        drawable1 = getDrawable(R.drawable.bg_black);
+                        vehicleColor = R.drawable.gray_car;
+                        bgDrawable = R.drawable.bg_grey;
+                        drawable1 = getDrawable(bgDrawable);
+                        layout.setBackground(drawable1);
                     }
                     layout.setBackground(drawable1);
-
-
                     onMapReady(mMap);
                     loadingDialogue.dismiss();
                     updateMapAfter30Sec();
@@ -441,7 +483,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + "-");
                     txtDate.setText("00-00-0000");
                     txt_time.setText("00:00:00");
-                    txtUserName.setText(CustName);
+                    txtVehicleNo.setText("-");
+                    txtUserName.setText("Hi, "+CustName);
                     mMarker.remove();
                     Drawable drawable = getDrawable(R.drawable.bg_grey);
                     layout.setBackground(drawable);
@@ -472,16 +515,16 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     private void updateMapAfter30Sec() {
-
-        runnableCode = new Runnable() {
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 Log.d(TAG, "run: MapUpdated");
-                onMapReady(mMap);
-                handler.postDelayed(runnableCode, 30000);
+                getSelectedCarData(selectedCarVid, selectedObjID);
+                loadingDialogue.dismiss();
             }
-        };
-        handler.post(runnableCode);
+        }, 30000);
+
+
     }
 
     private String convertTime(String time1) {

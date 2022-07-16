@@ -5,9 +5,11 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -22,6 +24,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -31,14 +37,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     String latitude, longitude;
 
-
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
 
         String title = remoteMessage.getData().get("title");
         String body = remoteMessage.getData().get("body");
         String context = remoteMessage.getData().get("context");
-
 
         RunNotification(title, body, context);
 
@@ -62,7 +66,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(String token) {
         Log.d(TAG, "Refreshed token: " + token);
-        sendRegistrationToServer(token);
+        saveUpdatedToken(token);
     }
 
     private void scheduleJob() {
@@ -76,8 +80,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
 
-    private void sendRegistrationToServer(String token) {
-        // TODO: Implement this method to send token to your app server.
+    private void saveUpdatedToken(String token) {
+        SharedPreferences sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.putString("RefreshedToken", token);
+        Log.d(TAG, "saveUpdatedToken: tokenSaved"+token);
+        myEdit.apply();
     }
 
 
@@ -104,6 +112,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         contentView.setTextViewText(R.id.title, title);
         contentView.setTextViewText(R.id.text, messageBody);
 
+
+        String currentTime = new SimpleDateFormat("HH:mm aa", Locale.getDefault()).format(new Date());
+        contentView.setTextViewText(R.id.txtTime,currentTime);
+
+
         /*
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
@@ -111,30 +124,30 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         */
 
 
+        {
+            if (Objects.equals(context, "battery charged"))
+                contentView.setImageViewResource(R.id.image, R.drawable.battery);
 
-        if (Objects.equals(context, "battery charged"))
-            contentView.setImageViewResource(R.id.image, R.drawable.battery);
+            else if (Objects.equals(context, "battery low"))
+                contentView.setImageViewResource(R.id.image, R.drawable.battery_low);
 
-        else if (Objects.equals(context, "battery low"))
-            contentView.setImageViewResource(R.id.image, R.drawable.battery_low);
+            else if (Objects.equals(context, "fence"))
+                contentView.setImageViewResource(R.id.image, R.drawable.fence);
 
-        else if (Objects.equals(context, "fence"))
-            contentView.setImageViewResource(R.id.image, R.drawable.fence);
+            else if (Objects.equals(context, "engine"))
+                contentView.setImageViewResource(R.id.image, R.drawable.engine);
 
-        else if (Objects.equals(context, "engine"))
-            contentView.setImageViewResource(R.id.image, R.drawable.engine);
+            else if (Objects.equals(context, "ignition on"))
+                contentView.setImageViewResource(R.id.image, R.drawable.ignition_on);
 
-        else if (Objects.equals(context, "ignition on"))
-            contentView.setImageViewResource(R.id.image, R.drawable.ignition_on);
+            else if (Objects.equals(context, "ignition off"))
+                contentView.setImageViewResource(R.id.image, R.drawable.ignition_off);
 
-        else if (Objects.equals(context, "ignition off"))
-            contentView.setImageViewResource(R.id.image, R.drawable.ignition_off);
+            else
+                contentView.setImageViewResource(R.id.image, R.drawable.img_logo);
+        }
 
-        else
-            contentView.setImageViewResource(R.id.image, R.drawable.img_logo);
-
-
-//        mBuilder.setSmallIcon(R.drawable.img_logo_uni);
+        mBuilder.setSmallIcon(R.drawable.img_logo_uni);
 
 
         mBuilder.setAutoCancel(false);
