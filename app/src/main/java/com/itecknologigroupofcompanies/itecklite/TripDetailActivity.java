@@ -1,14 +1,17 @@
 package com.itecknologigroupofcompanies.itecklite;
 
 import static android.content.ContentValues.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
@@ -16,16 +19,23 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +44,7 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RemoteViews;
 import android.widget.TextView;
@@ -45,12 +56,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.mikhaellopez.circularprogressbar.CircularProgressBar;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -65,6 +79,13 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     TextView txt_time, txtSpeed, txtIgnition, txtLatLong, txtVehicleNo;
     MarkerOptions markerOptions;
     Marker mMarker;
+    private ImageView gas;
+    private ImageView parking;
+    private ImageView resturant;
+    private ImageView banks;
+    private ImageView carmechanic;
+    private ImageView hospitals;
+
 
     Drawable drawable1;
 
@@ -92,6 +113,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private static Notification notification;
     private static NotificationManager notificationManager;
     private static final int NotificationID = 1005;
+    @SuppressLint("StaticFieldLeak")
     private static NotificationCompat.Builder mBuilder;
     String phNo;
 
@@ -104,9 +126,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         @SuppressLint("InvalidWakeLockTag")
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
-        wl.acquire(10*60*1000L /*10 minutes*/);
+        wl.acquire(10 * 60 * 1000L /*10 minutes*/);
 
         wl.release();
+//        circularProgressBar();
 
         loadingDialogue = new Dialog(this);
         loadingDialogue.setContentView(R.layout.loading);
@@ -136,18 +159,46 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         txtVehicleDetails = findViewById(R.id.txtVehicleDetails);
         txtNoCar = findViewById(R.id.txt_car_no);
         txtUserName = findViewById(R.id.txtUserName);
-        layout.setOnClickListener(this);
 
-        ConstraintLayout bottomSheetLayout = findViewById(R.id.bottom_sheet);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
-        bottomSheetBehavior.setPeekHeight(400);
+        parking = findViewById(R.id.imageView9);
+        gas = findViewById(R.id.imageView10);
+        resturant = (ImageView) findViewById(R.id.imageView11);
+        banks = (ImageView) findViewById(R.id.imageView12);
+        hospitals = (ImageView) findViewById(R.id.imageView13);
+        carmechanic = (ImageView) findViewById(R.id.imageView14);
+
+
+        layout.setOnClickListener(this);
+        parking.setOnClickListener(this);
+        gas.setOnClickListener(this);
+        resturant.setOnClickListener(this);
+        banks.setOnClickListener(this);
+        hospitals.setOnClickListener(this);
+        carmechanic.setOnClickListener(this);
+
+
+        checkConnection();
+//        ConstraintLayout bottomSheetLayout = findViewById(R.id.bottom_sheet);
+//        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
+//        bottomSheetBehavior.setPeekHeight(400);
+
+
+        circularBars();
+        circularBars2();
+
 
         try {
-            getCarData(getIntent().getStringExtra("contact"));
-//            getCarData("03000546380");
-            drawable1 = getDrawable(bgDrawable);
-            layout.setBackground(drawable1);
-            loadingDialogue.dismiss();
+
+            if (checkConnection()) {
+                getCarData(getIntent().getStringExtra("contact"));
+                drawable1 = getDrawable(bgDrawable);
+                layout.setBackground(drawable1);
+                loadingDialogue.dismiss();
+            } else {
+                showAlertDialogue2("No Internet",
+                        "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+            }
+
 
         } catch (Exception e) {
 
@@ -155,11 +206,154 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         }
 
+
 //        rvInitialization();
 //
 //        listData();
 
+
     }
+
+    private boolean checkConnection() {
+        ConnectivityManager manager = (ConnectivityManager) getApplicationContext()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        @SuppressLint("MissingPermission") NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+
+        if (null != networkInfo) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                }
+            }, 1490);
+
+            return true;
+        } else {
+            showAlertDialogue2("No Internet",
+                    "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+//            finish();
+            return false;
+        }
+//        finish();
+
+    }
+
+    private void circularBars() {
+
+        CircularProgressBar circularProgressBar6 = (CircularProgressBar) findViewById(R.id.yourCircularProgressbarY);
+        circularProgressBar6.setProgressWithAnimation(65.0f, 1000L);
+        circularProgressBar6.setProgressMax(100.0f);
+        circularProgressBar6.setProgressBarColor(ViewCompat.MEASURED_STATE_MASK);
+
+        //C00219 r49 = r8;
+        circularProgressBar6.setProgressBarColorStart(Integer.valueOf(Color.rgb(102, 204, 0)));
+        circularProgressBar6.setProgressBarColorEnd(Integer.valueOf(Color.rgb(102, 204, 0)));
+        circularProgressBar6.setProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBar6.setBackgroundProgressBarColor(Color.rgb(224, 224, 244));
+        circularProgressBar6.setBackgroundProgressBarColorStart(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBar6.setBackgroundProgressBarColorEnd(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBar6.setBackgroundProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBar6.setProgressBarWidth(4.0f);
+        circularProgressBar6.setBackgroundProgressBarWidth(3.0f);
+        circularProgressBar6.setRoundBorder(true);
+        circularProgressBar6.setStartAngle(365.0f);
+        circularProgressBar6.setProgressDirection(CircularProgressBar.ProgressDirection.TO_RIGHT);
+
+
+        CircularProgressBar circularProgressBarr7 = (CircularProgressBar) findViewById(R.id.yourCircularProgressbarrY2);
+        circularProgressBarr7.setProgressWithAnimation(65.0f, 1000L);
+        circularProgressBarr7.setProgressMax(200.0f);
+        circularProgressBarr7.setProgressBarColor(ViewCompat.MEASURED_STATE_MASK);
+
+        circularProgressBarr7.setProgressBarColorStart(Integer.valueOf(Color.rgb(255, 153, 51)));
+        circularProgressBarr7.setProgressBarColorEnd(Integer.valueOf(Color.rgb(255, 153, 51)));
+        circularProgressBarr7.setProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarr7.setBackgroundProgressBarColor(Color.rgb(224, 224, 224));
+        circularProgressBarr7.setBackgroundProgressBarColorStart(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarr7.setBackgroundProgressBarColorEnd(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarr7.setBackgroundProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarr7.setProgressBarWidth(4.0f);
+        circularProgressBarr7.setBackgroundProgressBarWidth(3.0f);
+        circularProgressBarr7.setRoundBorder(true);
+        circularProgressBarr7.setStartAngle(365.0f);
+        circularProgressBarr7.setProgressDirection(CircularProgressBar.ProgressDirection.TO_RIGHT);
+
+        CircularProgressBar circularProgressBarrr8 = (CircularProgressBar) findViewById(R.id.yourCircularProgressbarrrY3);
+
+        circularProgressBarrr8.setProgressWithAnimation(65.0f, 1000L);
+        circularProgressBarrr8.setProgressMax(200.0f);
+        circularProgressBarrr8.setProgressBarColor(ViewCompat.MEASURED_STATE_MASK);
+        CircularProgressBar circularProgressBar2 = circularProgressBarr7;
+        circularProgressBarrr8.setProgressBarColorStart(Integer.valueOf(Color.rgb(0, 128, 255)));
+        circularProgressBarrr8.setProgressBarColorEnd(Integer.valueOf(Color.rgb(0, 128, 255)));
+        circularProgressBarrr8.setProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarrr8.setBackgroundProgressBarColor(Color.rgb(224, 224, 224));
+        circularProgressBarrr8.setBackgroundProgressBarColorStart(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarrr8.setBackgroundProgressBarColorEnd(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarrr8.setBackgroundProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarrr8.setProgressBarWidth(4.0f);
+        circularProgressBarrr8.setBackgroundProgressBarWidth(3.0f);
+        circularProgressBarrr8.setRoundBorder(true);
+        circularProgressBarrr8.setStartAngle(365.0f);
+        circularProgressBarrr8.setProgressDirection(CircularProgressBar.ProgressDirection.TO_RIGHT);
+
+
+    }
+
+    private void circularBars2() {
+        CircularProgressBar circularProgressBar1 = (CircularProgressBar) findViewById(R.id.yourCircularProgressbar7days);
+        circularProgressBar1.setProgressWithAnimation(65.0f, 1000L);
+        circularProgressBar1.setProgressMax(100.0f);
+        circularProgressBar1.setProgressBarColor(ViewCompat.MEASURED_STATE_MASK);
+        circularProgressBar1.setProgressBarColorStart(Integer.valueOf(Color.rgb(102, 204, 0)));
+        circularProgressBar1.setProgressBarColorEnd(Integer.valueOf(Color.rgb(102, 204, 0)));
+        circularProgressBar1.setProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBar1.setBackgroundProgressBarColor(Color.rgb(224, 224, 244));
+        circularProgressBar1.setBackgroundProgressBarColorStart(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBar1.setBackgroundProgressBarColorEnd(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBar1.setBackgroundProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBar1.setProgressBarWidth(4.0f);
+        circularProgressBar1.setBackgroundProgressBarWidth(3.0f);
+        circularProgressBar1.setRoundBorder(true);
+        circularProgressBar1.setStartAngle(365.0f);
+        circularProgressBar1.setProgressDirection(CircularProgressBar.ProgressDirection.TO_RIGHT);
+
+        CircularProgressBar circularProgressBarr2 = (CircularProgressBar) findViewById(R.id.yourCircularProgressbar7days2);
+        circularProgressBarr2.setProgressWithAnimation(65.0f, 1000L);
+        circularProgressBarr2.setProgressMax(200.0f);
+        circularProgressBarr2.setProgressBarColor(ViewCompat.MEASURED_STATE_MASK);
+        CircularProgressBar circularProgressBar4 = circularProgressBar1;
+        circularProgressBarr2.setProgressBarColorStart(Integer.valueOf(Color.rgb(255, 153, 51)));
+        circularProgressBarr2.setProgressBarColorEnd(Integer.valueOf(Color.rgb(255, 153, 51)));
+        circularProgressBarr2.setProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarr2.setBackgroundProgressBarColor(Color.rgb(224, 224, 224));
+        circularProgressBarr2.setBackgroundProgressBarColorStart(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarr2.setBackgroundProgressBarColorEnd(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarr2.setBackgroundProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarr2.setProgressBarWidth(4.0f);
+        circularProgressBarr2.setBackgroundProgressBarWidth(3.0f);
+        circularProgressBarr2.setRoundBorder(true);
+        circularProgressBarr2.setStartAngle(365.0f);
+        circularProgressBarr2.setProgressDirection(CircularProgressBar.ProgressDirection.TO_RIGHT);
+
+        CircularProgressBar circularProgressBarrr3 = (CircularProgressBar) findViewById(R.id.yourCircularProgressbar7days3);
+        circularProgressBarrr3.setProgressWithAnimation(65.0f, 1000L);
+        circularProgressBarrr3.setProgressMax(200.0f);
+        circularProgressBarrr3.setProgressBarColor(ViewCompat.MEASURED_STATE_MASK);
+        circularProgressBarrr3.setProgressBarColorStart(Integer.valueOf(Color.rgb(0, 128, 255)));
+        circularProgressBarrr3.setProgressBarColorEnd(Integer.valueOf(Color.rgb(0, 128, 255)));
+        circularProgressBarrr3.setProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarrr3.setBackgroundProgressBarColor(Color.rgb(224, 224, 224));
+        circularProgressBarrr3.setBackgroundProgressBarColorStart(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarrr3.setBackgroundProgressBarColorEnd(Integer.valueOf(Color.rgb(224, 224, 224)));
+        circularProgressBarrr3.setBackgroundProgressBarColorDirection(CircularProgressBar.GradientDirection.TOP_TO_BOTTOM);
+        circularProgressBarrr3.setProgressBarWidth(4.0f);
+        circularProgressBarrr3.setBackgroundProgressBarWidth(3.0f);
+        circularProgressBarrr3.setRoundBorder(true);
+        circularProgressBarrr3.setStartAngle(365.0f);
+        circularProgressBarrr3.setProgressDirection(CircularProgressBar.ProgressDirection.TO_RIGHT);
+    }
+
 
     private void getCarData(String contactNo) {
         loadingDialogue.show();
@@ -194,19 +388,25 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     selectedObjID = VehicleObjId.get(i);
 
                     try {
-                        getSelectedCarData(VehicleId.get(0), VehicleObjId.get(0));
+                        if (checkConnection()) {
+                            getSelectedCarData(VehicleId.get(0), VehicleObjId.get(0));
+                        } else {
+                            loadingDialogue.dismiss();
+                            showAlertDialogue2("No Internet",
+                                    "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+                        }
 
                     } catch (Exception e) {
                     }
                     txtNoCar.setText(VehicleRegId.get(0).toString());
                 }
-
                 loadingDialogue.dismiss();
 
             }
 
             @Override
             public void onFailure(@NonNull Call<ResponseModel> call, @NonNull Throwable t) {
+                showAlertDialogue2("Server Not Responding", "", R.drawable.ic_close_circle_line);
                 loadingDialogue.dismiss();
             }
         });
@@ -228,6 +428,76 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             for (String key : getIntent().getExtras().keySet()) {
                 Object value = getIntent().getExtras().get(key);
                 Log.d(TAG, "Key: " + key + " Value: " + value);
+            }
+        }
+    }
+
+    public void gassearch() {
+        Intent mapIntent = new Intent("android.intent.action.VIEW", Uri.parse("geo:24.8607,67.0011?q=gas station"));
+        mapIntent.setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent("android.intent.action.VIEW", Uri.parse("http://maps.google.com/maps?daddr= (gas station )")));
+            } catch (ActivityNotFoundException e2) {
+                Toast.makeText(this, "Please install a maps application", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void resturantsearch() {
+        Intent mapIntent = new Intent("android.intent.action.VIEW", Uri.parse("geo:24.8607,67.0011?q=Restaurants"));
+        mapIntent.setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent("android.intent.action.VIEW", Uri.parse("http://maps.google.com/maps?daddr= (Restaurants )")));
+            } catch (ActivityNotFoundException e2) {
+                Toast.makeText(this, "Please install a maps application", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void banksearch() {
+        Intent mapIntent = new Intent("android.intent.action.VIEW", Uri.parse("geo:24.8607,67.0011?q=Banks"));
+        mapIntent.setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent("android.intent.action.VIEW", Uri.parse("http://maps.google.com/maps?daddr= (Banks )")));
+            } catch (ActivityNotFoundException e2) {
+                Toast.makeText(this, "Please install a maps application", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void hospitalssearch() {
+        Intent mapIntent = new Intent("android.intent.action.VIEW", Uri.parse("geo:24.8607,67.0011?q=Hospitals"));
+        mapIntent.setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent("android.intent.action.VIEW", Uri.parse("http://maps.google.com/maps?daddr= (Hospitals )")));
+            } catch (ActivityNotFoundException e2) {
+                Toast.makeText(this, "Please install a maps application", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void carmechanicssearch() {
+        Intent mapIntent = new Intent("android.intent.action.VIEW", Uri.parse("geo:24.8607,67.0011?q=car mechanic"));
+        mapIntent.setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e) {
+            try {
+                startActivity(new Intent("android.intent.action.VIEW", Uri.parse("http://maps.google.com/maps?daddr= (car mechanic )")));
+            } catch (ActivityNotFoundException e2) {
+                Toast.makeText(this, "Please install a maps application", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -317,8 +587,65 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         switch (view.getId()) {
             case R.id.txtNumP:
                 showAlertDialog();
+                break;
+
+            case R.id.imageView9:
+                //parking
+                TripDetailActivity.this.startActivity(new Intent(TripDetailActivity.this.getApplicationContext(),
+                        mapref.class));
+                break;
+
+            case R.id.imageView10:
+                //gas
+                TripDetailActivity.this.gassearch();
+                break;
+
+            case R.id.imageView11:
+                //resturant
+                TripDetailActivity.this.resturantsearch();
+                break;
+
+            case R.id.imageView12:
+                //banks
+                TripDetailActivity.this.banksearch();
+
+                break;
+
+            case R.id.imageView13:
+                //hospital
+                TripDetailActivity.this.hospitalssearch();
+
+                break;
+
+            case R.id.imageView14:
+                //car mechanic
+                TripDetailActivity.this.carmechanicssearch();
+                break;
+
         }
     }
+
+    private void showAlertDialogue2(String title, String message, int icon) {
+
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+        builder1.setTitle(title);
+        builder1.setMessage(message);
+        builder1.setIcon(icon);
+        builder1.setCancelable(true);
+
+        builder1.setPositiveButton(
+                "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
 
     private void showAlertDialog() {
         AlertDialog.Builder alt_bld = new AlertDialog.Builder(this);
@@ -332,9 +659,13 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 selectedObjID = VehicleObjId.get(item);
 
                 try {
-                    getSelectedCarData(selectedCarVid, selectedObjID);
+                    if (checkConnection()) {
+                        getSelectedCarData(selectedCarVid, selectedObjID);
+                    } else {
+                        showAlertDialogue2("No Internet",
+                                "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+                    }
                 } catch (Exception e) {
-
                 }
 
                 dialog.dismiss();
@@ -360,7 +691,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             @RequiresApi(api = Build.VERSION_CODES.O)
             @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
             @Override
-            public void onResponse(Call<SelectedVehicleResponseModel> call, Response<SelectedVehicleResponseModel> response) {
+            public void onResponse(@NonNull Call<SelectedVehicleResponseModel> call, @NonNull Response<SelectedVehicleResponseModel> response) {
 
                 String location = response.body().getLocation();
                 String health = response.body().getBatteryHealth();
@@ -424,9 +755,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     String sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 
                     String dateStart = stringTime;
-                    Log.d(TAG, "onResponse: dateStart"+dateStart);
+                    Log.d(TAG, "onResponse: dateStart" + dateStart);
                     String dateStop = sdf.toString();
-                    Log.d(TAG, "onResponse: dateStop "+dateStop);
+                    Log.d(TAG, "onResponse: dateStop " + dateStop);
 
                     @SuppressLint("SimpleDateFormat")
                     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -476,7 +807,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     updateMapAfter30Sec();
                 } else {
                     Log.d(TAG, "onResponse: Something is null");
-                    Toast.makeText(TripDetailActivity.this, "Vehicle Not Found", Toast.LENGTH_SHORT).show();
+                    showAlertDialogue("Warning", "Data Not Available", R.drawable.ic_close_circle_line);
                     txtSpeed.setText("-" + " KM/H");
                     txtIgnition.setText("-");
                     txtLatLong.setText("-");
@@ -484,7 +815,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     txtDate.setText("00-00-0000");
                     txt_time.setText("00:00:00");
                     txtVehicleNo.setText("-");
-                    txtUserName.setText("Hi, "+CustName);
+                    txtUserName.setText("Hi, " + CustName);
                     mMarker.remove();
                     Drawable drawable = getDrawable(R.drawable.bg_grey);
                     layout.setBackground(drawable);
@@ -493,11 +824,13 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 }
             }
 
+            @SuppressLint("SetTextI18n")
             @Override
             public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
 
                 loadingDialogue.dismiss();
-                Toast.makeText(TripDetailActivity.this, "Data Not Available", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(TripDetailActivity.this, "Data Not Available", Toast.LENGTH_SHORT).show();
+                showAlertDialogue("Warning", "Data Not Available", R.drawable.ic_close_circle_line);
                 mMap.clear();
                 txtSpeed.setText("-" + " KM/H");
                 txtIgnition.setText("-");
@@ -507,11 +840,32 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 txt_time.setText("00:00:00");
                 markerOptions.visible(false);
                 txtUserName.setText("---");
-                Drawable drawable = getDrawable(R.drawable.bg_grey);
+                @SuppressLint("UseCompatLoadingForDrawables") Drawable drawable = getDrawable(R.drawable.bg_grey);
                 layout.setBackground(drawable);
                 mMarker.remove();
             }
         });
+    }
+
+    private void showAlertDialogue(String title, String message, int icon) {
+
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+        builder1.setTitle(title);
+        builder1.setMessage(message);
+        builder1.setIcon(icon);
+        builder1.setCancelable(true);
+
+        builder1.setPositiveButton(
+                "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
     }
 
     private void updateMapAfter30Sec() {
@@ -519,7 +873,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public void run() {
                 Log.d(TAG, "run: MapUpdated");
-                getSelectedCarData(selectedCarVid, selectedObjID);
+                if (checkConnection()) {
+                    getSelectedCarData(selectedCarVid, selectedObjID);
+                } else {
+                    showAlertDialogue2("No Internet",
+                            "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+                }
                 loadingDialogue.dismiss();
             }
         }, 30000);

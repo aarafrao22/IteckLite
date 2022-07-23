@@ -7,13 +7,13 @@
     <uses-permission
         android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
+<!--    <uses-permission android:name="android.permission.RECEIVE_SMS" />-->
+<!--    <uses-permission android:name="android.permission.READ_SMS" />-->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/iconn"
@@ -21,7 +21,11 @@
         android:roundIcon="@mipmap/iconn"
         android:supportsRtl="true"
         android:theme="@style/Theme.ITeckLite"
-        tools:targetApi="31">
+        tools:targetApi="31"
+        android:testOnly="false"
+        android:debuggable="false"
+        tools:ignore="HardcodedDebugMode">
+
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -44,6 +48,10 @@
             android:exported="false" />
         <activity
             android:name=".login_one"
+            android:exported="false" />
+
+        <activity
+            android:name=".mapref"
             android:exported="false" />
 
         <service

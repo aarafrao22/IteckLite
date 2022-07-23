@@ -134,7 +134,8 @@ public class splash extends AppCompatActivity{
             }, 1490);
 
         } else {
-            showAlertDialogue("Make sure your internet is connected");
+            showAlertDialogue2("No Internet",
+                    "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
 //            finish();
         }
 //        finish();
@@ -241,6 +242,7 @@ public class splash extends AppCompatActivity{
 
             @Override
             public void onFailure(Call<ResponseLoginCheck> call, Throwable t) {
+                //showAlertDialogue2("Server Not Responding", "", R.drawable.ic_close_circle_line);
                 Log.d(TAG, "onFailure: " + t.getMessage());
                 Intent intent = new Intent(getApplicationContext(), login_one.class);
                 startActivity(intent);
@@ -279,6 +281,29 @@ public class splash extends AppCompatActivity{
 //            });
 
     }
+
+    private void showAlertDialogue2(String title, String message, int icon) {
+
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+        builder1.setTitle(title);
+        builder1.setMessage(message);
+        builder1.setIcon(icon);
+        builder1.setCancelable(true);
+
+        builder1.setPositiveButton(
+                "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                        dialog.cancel();
+                    }
+                });
+
+
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
 }
 
 

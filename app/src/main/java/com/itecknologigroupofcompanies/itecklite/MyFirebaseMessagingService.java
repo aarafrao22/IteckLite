@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +30,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Random;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -44,7 +46,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String body = remoteMessage.getData().get("body");
         String context = remoteMessage.getData().get("context");
 
-        RunNotification(title, body, context);
+        if (context!=null){
+            try {
+                RunNotification(title, body, Integer.parseInt(context));
+                
+            }catch (NumberFormatException numberFormatException){
+
+            }
+        }else {
+
+        }
+
 
 //        sendNotification(title, body);
 
@@ -84,17 +96,24 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         SharedPreferences sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE);
         SharedPreferences.Editor myEdit = sharedPreferences.edit();
         myEdit.putString("RefreshedToken", token);
-        Log.d(TAG, "saveUpdatedToken: tokenSaved"+token);
+        Log.d(TAG, "saveUpdatedToken: tokenSaved" + token);
         myEdit.apply();
     }
 
 
-    private void RunNotification(String title, String messageBody, String context) {
+    private void RunNotification(String title, String messageBody, int context) {
         RemoteViews contentView;
         Notification notification;
         NotificationManager notificationManager;
-        int NotificationID = 1005;
+
         NotificationCompat.Builder mBuilder;
+
+        Random rand = new Random();
+
+        int n = rand.nextInt(5000);
+        n += 1;
+
+        int NotificationID = n;
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mBuilder = new NotificationCompat.Builder(getApplicationContext(), "notify_001");
@@ -114,7 +133,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
 
         String currentTime = new SimpleDateFormat("HH:mm aa", Locale.getDefault()).format(new Date());
-        contentView.setTextViewText(R.id.txtTime,currentTime);
+        contentView.setTextViewText(R.id.txtTime, currentTime);
 
 
         /*
@@ -124,28 +143,46 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         */
 
 
-        {
-            if (Objects.equals(context, "battery charged"))
-                contentView.setImageViewResource(R.id.image, R.drawable.battery);
-
-            else if (Objects.equals(context, "battery low"))
-                contentView.setImageViewResource(R.id.image, R.drawable.battery_low);
-
-            else if (Objects.equals(context, "fence"))
-                contentView.setImageViewResource(R.id.image, R.drawable.fence);
-
-            else if (Objects.equals(context, "engine"))
-                contentView.setImageViewResource(R.id.image, R.drawable.engine);
-
-            else if (Objects.equals(context, "ignition on"))
-                contentView.setImageViewResource(R.id.image, R.drawable.ignition_on);
-
-            else if (Objects.equals(context, "ignition off"))
-                contentView.setImageViewResource(R.id.image, R.drawable.ignition_off);
-
-            else
+        switch(context){
+            case 0:
                 contentView.setImageViewResource(R.id.image, R.drawable.img_logo);
+                break;
+            case 1:
+                contentView.setImageViewResource(R.id.image, R.drawable.battery_disconnected);
+                break;
+            case 2:
+                contentView.setImageViewResource(R.id.image, R.drawable.battery_connected);
+                break;
+            case 3:
+                contentView.setImageViewResource(R.id.image, R.drawable.fence);
+                break;
+            case 4:
+                contentView.setImageViewResource(R.id.image, R.drawable.ig_on);
+                break;
+            case 5:
+                contentView.setImageViewResource(R.id.image, R.drawable.ig_of);
+                break;
         }
+
+
+//        {
+//            if (context == 1)
+//
+//            else if (context ==2)
+//            contentView.setImageViewResource(R.id.image, R.drawable.battery_connected);
+//
+//            else if (Objects.equals(context, "fence"))
+//                contentView.setImageViewResource(R.id.image, R.drawable.fence);
+//
+//            else if (Objects.equals(context, "ignition on"))
+//                contentView.setImageViewResource(R.id.image, R.drawable.ig_on);
+//
+//            else if (Objects.equals(context, "ignition off"))
+//                contentView.setImageViewResource(R.id.image, R.drawable.ig_of);
+//
+//            else
+//                contentView.setImageViewResource(R.id.image, R.drawable.img_logo);
+//        }
 
         mBuilder.setSmallIcon(R.drawable.img_logo_uni);
 

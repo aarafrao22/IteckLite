@@ -228,9 +228,9 @@ public class otp_check extends AppCompatActivity {
                 assert up != null;
                 String message = up.getMessage();
                 if (message.equals("success")) {
-                    Toast.makeText(otp_check.this, "FCM updated", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(otp_check.this, "FCM updated", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(otp_check.this, "FCM :( nhi gaya", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(otp_check.this, "FCM :( nhi gaya", Toast.LENGTH_SHORT).show();
                 }
                 loadingDialogue.dismiss();
             }

@@ -7,6 +7,27 @@
     <string name="default_notification_channel_name" translatable="true">Weather</string>
     <string name="msg_token_fmt">Helloooooooo</string>
 
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="mileage">Mileage</string>
+    <string name="mileage1">You have driven 568.4Km in past 7 days.</string>
+    <string name="mileage2">You have driven 568.4Km in past 7 days.</string>
+    <string name="amount">Amount</string>
+    <string name="amount1">You have spent PKR 2154 on fuel in past 7 days</string>
+    <string name="fuel">Fuel</string>
+    <string name="fuel1">You have burned 97.4 litres in past 28 days.</string>
+    <string name="trips">Trips</string>
+    <string name="trip1">You have made 61 total in past 7 days.</string>
+
+    <string name="footertext">Karachi (Head Office) :\n
+9th  10th Floor, Q.M. Building, BC-15, Block-7, Scheme-5, Clifton-75600\n
+Tel: 021-35147324-7 | UAN: 021-111-148-235</string>
+
+    <string name="footercountries">USA | South Korea | UAE | Bahrain | Indonesia | Afghanistan | Pakistan</string>
+    <string name="bottomFeedback">Feedback</string>
+    <string name="bottomDisclaimer">Disclaimer</string>
+    <string name="bottomCall">Call</string>
+    <string name="title_activity_maps">MapsActivity</string>
+
 
 
 </resources>

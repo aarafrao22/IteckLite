@@ -121,6 +121,7 @@ public class login_one extends AppCompatActivity {
                         // Get new FCM registration token
                         String token = task.getResult();
                         tokenn = token;
+                        Log.d(TAG, "token: " + token);
                         // Log and toast
                        // String msg = getString(R.string.msg_token_fmt, token);
                        // Log.d(TAG, msg);
