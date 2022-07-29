@@ -132,7 +132,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         contentView.setTextViewText(R.id.text, messageBody);
 
 
-        String currentTime = new SimpleDateFormat("HH:mm aa", Locale.getDefault()).format(new Date());
+        String currentTime = new SimpleDateFormat("HH:mm aa ", Locale.getDefault()).format(new Date());
         contentView.setTextViewText(R.id.txtTime, currentTime);
 
 

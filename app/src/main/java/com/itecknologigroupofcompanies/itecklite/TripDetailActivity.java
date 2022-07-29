@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -86,7 +87,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private ImageView carmechanic;
     private ImageView hospitals;
 
-
     Drawable drawable1;
 
     private RecyclerView recyclerView;
@@ -108,6 +108,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     int angle = 90;
     int vehicleColor = R.drawable.black_car;
     int bgDrawable = R.drawable.bg_red;
+    private ConstraintLayout yesterdayLayout;
 
     private static RemoteViews contentView;
     private static Notification notification;
@@ -159,6 +160,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         txtVehicleDetails = findViewById(R.id.txtVehicleDetails);
         txtNoCar = findViewById(R.id.txt_car_no);
         txtUserName = findViewById(R.id.txtUserName);
+        yesterdayLayout = findViewById(R.id.yesterdayItem);
 
         parking = findViewById(R.id.imageView9);
         gas = findViewById(R.id.imageView10);
@@ -167,7 +169,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         hospitals = (ImageView) findViewById(R.id.imageView13);
         carmechanic = (ImageView) findViewById(R.id.imageView14);
 
-
         layout.setOnClickListener(this);
         parking.setOnClickListener(this);
         gas.setOnClickListener(this);
@@ -175,9 +176,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         banks.setOnClickListener(this);
         hospitals.setOnClickListener(this);
         carmechanic.setOnClickListener(this);
+        yesterdayLayout.setOnClickListener(this);
 
-
-        checkConnection();
 //        ConstraintLayout bottomSheetLayout = findViewById(R.id.bottom_sheet);
 //        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
 //        bottomSheetBehavior.setPeekHeight(400);
@@ -186,24 +186,14 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         circularBars();
         circularBars2();
 
-
         try {
-
-            if (checkConnection()) {
-                getCarData(getIntent().getStringExtra("contact"));
-                drawable1 = getDrawable(bgDrawable);
-                layout.setBackground(drawable1);
-                loadingDialogue.dismiss();
-            } else {
-                showAlertDialogue2("No Internet",
-                        "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
-            }
-
-
-        } catch (Exception e) {
-
+            getCarData(getIntent().getStringExtra("contact"));
+            drawable1 = getDrawable(bgDrawable);
+            layout.setBackground(drawable1);
             loadingDialogue.dismiss();
 
+        } catch (Exception e) {
+            loadingDialogue.dismiss();
         }
 
 
@@ -220,18 +210,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         @SuppressLint("MissingPermission") NetworkInfo networkInfo = manager.getActiveNetworkInfo();
 
         if (null != networkInfo) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                }
-            }, 1490);
-
             return true;
         } else {
-            showAlertDialogue2("No Internet",
-                    "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
-//            finish();
             return false;
         }
 //        finish();
@@ -358,58 +338,57 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private void getCarData(String contactNo) {
         loadingDialogue.show();
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://iot.itecknologi.com/mobile/loadcustomerdata.php/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        if (checkConnection()) {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("https://iot.itecknologi.com/mobile/loadcustomerdata.php/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
 
-        RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
+            RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
-        Call<ResponseModel> call = retrofitAPI.getCarDataList(contactNo);
-        call.enqueue(new Callback<ResponseModel>() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onResponse(@NonNull Call<ResponseModel> call, @NonNull Response<ResponseModel> response) {
-                assert response.body() != null;
-                String success = response.body().getSuccess();
+            Call<ResponseModel> call = retrofitAPI.getCarDataList(contactNo);
+            call.enqueue(new Callback<ResponseModel>() {
+                @SuppressLint("SetTextI18n")
+                @Override
+                public void onResponse(@NonNull Call<ResponseModel> call, @NonNull Response<ResponseModel> response) {
+                    assert response.body() != null;
+                    String success = response.body().getSuccess();
 
-                if (success.equals("true")) {
-                    String name = response.body().getName();
-                    txtUserName.setText("Hi, " + name);
-                    List<VehicleModel> vehicleModelArrayList = response.body().vehicle;
+                    if (success.equals("true")) {
+                        String name = response.body().getName();
+                        txtUserName.setText("Hi, " + name);
+                        List<VehicleModel> vehicleModelArrayList = response.body().vehicle;
 
-                    for (VehicleModel vehicleModel : vehicleModelArrayList) {
-                        VehicleRegId.add(vehicleModel.getVeh_reg());
-                        VehicleId.add(vehicleModel.getVehicle_id());
-                        VehicleObjId.add(vehicleModel.getObject_id());
-                    }
-
-                    selectedCarVid = VehicleId.get(i);
-                    selectedObjID = VehicleObjId.get(i);
-
-                    try {
-                        if (checkConnection()) {
-                            getSelectedCarData(VehicleId.get(0), VehicleObjId.get(0));
-                        } else {
-                            loadingDialogue.dismiss();
-                            showAlertDialogue2("No Internet",
-                                    "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+                        for (VehicleModel vehicleModel : vehicleModelArrayList) {
+                            VehicleRegId.add(vehicleModel.getVeh_reg());
+                            VehicleId.add(vehicleModel.getVehicle_id());
+                            VehicleObjId.add(vehicleModel.getObject_id());
                         }
 
-                    } catch (Exception e) {
+                        selectedCarVid = VehicleId.get(i);
+                        selectedObjID = VehicleObjId.get(i);
+
+                        try {
+                            getSelectedCarData(VehicleId.get(0), VehicleObjId.get(0));
+
+                        } catch (Exception e) {
+                        }
+                        txtNoCar.setText(VehicleRegId.get(0).toString());
                     }
-                    txtNoCar.setText(VehicleRegId.get(0).toString());
+                    loadingDialogue.dismiss();
+
                 }
-                loadingDialogue.dismiss();
 
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<ResponseModel> call, @NonNull Throwable t) {
-                showAlertDialogue2("Server Not Responding", "", R.drawable.ic_close_circle_line);
-                loadingDialogue.dismiss();
-            }
-        });
+                @Override
+                public void onFailure(@NonNull Call<ResponseModel> call, @NonNull Throwable t) {
+                    showAlertDialogue2("Server Not Responding", "", R.drawable.ic_close_circle_line);
+                    loadingDialogue.dismiss();
+                }
+            });
+        } else {
+            showAlertDialogue2("No Internet",
+                    "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+        }
     }
 
     private void notificationWalaKaam() {
@@ -529,37 +508,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 });
     }
 
-//    private void rvInitialization() {
-//        recyclerView = findViewById(R.id.RecyclerView);
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-//        layoutManager.setOrientation(RecyclerView.VERTICAL);
-//        recyclerView.setLayoutManager(layoutManager);
-//
-//        list = new ArrayList<>();
-//        adapter = new TripAdapter(list);
-//        recyclerView.setAdapter(adapter);
-//    }
 
-//    private void listData() {
-//        list.add(new TripModel("2:54pm", "9:10pm", "iTecknologi Group of Companies"
-//                , "Department of Computer Science UBIT", "21 KM", "3:01pm"));
-//
-//        list.add(new TripModel("1:22pm", "10:01pm", "Clifton BLock 7 Mai Kolachi Bypass"
-//                , "University Of Karachi", "20 KM", "1:01am"));
-//
-//        list.add(new TripModel("2:54pm", "9:10pm", "Nandos Clifton Opp. Shaheed Benazir Bhutto Park"
-//                , "Department of Computer Science UBIT", "21 KM", "3:01pm"));
-//
-//        list.add(new TripModel("2:54pm", "9:10pm", "iTecknologi Group of Companies"
-//                , "Department of Computer Science UBIT", "21 KM", "3:01pm"));
-//
-//        list.add(new TripModel("2:54pm", "9:10pm", "iTecknologi Group of Companies"
-//                , "Department of Computer Science UBIT", "21 KM", "3:01pm"));
-//
-//        list.add(new TripModel("2:54pm", "9:10pm", "iTecknologi Group of Companies"
-//                , "Department of Computer Science UBIT", "21 KM", "3:01pm"));
-//
-//    }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -614,7 +563,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             case R.id.imageView13:
                 //hospital
                 TripDetailActivity.this.hospitalssearch();
-
                 break;
 
             case R.id.imageView14:
@@ -622,7 +570,18 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 TripDetailActivity.this.carmechanicssearch();
                 break;
 
+            case R.id.yesterdayItem:
+                shiftToPolyActivity();
+                break;
+
         }
+    }
+
+    private void shiftToPolyActivity() {
+
+        Intent intent = new Intent(TripDetailActivity.this,PolyActivity.class);
+        intent.putExtra("status",1);
+        startActivity(intent);
     }
 
     private void showAlertDialogue2(String title, String message, int icon) {
@@ -637,6 +596,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        @SuppressLint("UseCompatLoadingForDrawables") Drawable drawable = getDrawable(R.drawable.bg_grey);
+                        layout.setBackground(drawable);
                         dialog.cancel();
                     }
                 });
@@ -644,8 +605,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         AlertDialog alert11 = builder1.create();
         alert11.show();
-    }
 
+    }
 
     private void showAlertDialog() {
         AlertDialog.Builder alt_bld = new AlertDialog.Builder(this);
@@ -659,13 +620,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 selectedObjID = VehicleObjId.get(item);
 
                 try {
-                    if (checkConnection()) {
-                        getSelectedCarData(selectedCarVid, selectedObjID);
-                    } else {
-                        showAlertDialogue2("No Internet",
-                                "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
-                    }
+                    getSelectedCarData(selectedCarVid, selectedObjID);
+
                 } catch (Exception e) {
+
                 }
 
                 dialog.dismiss();
@@ -676,175 +634,181 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     private void getSelectedCarData(String selectedCarVid, String selectedCarObjId) {
-        loadingDialogue.show();
 
+        if (checkConnection()) {
+            loadingDialogue.show();
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://iot.itecknologi.com/mobile/get_vehicle_latest_info.php/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("https://iot.itecknologi.com/mobile/get_vehicle_latest_info.php/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
 
-        RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
+            RetrofitAPI retrofitAPI = retrofit.create(RetrofitAPI.class);
 
-        Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid, selectedCarObjId);
-        call.enqueue(new Callback<SelectedVehicleResponseModel>() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
-            @Override
-            public void onResponse(@NonNull Call<SelectedVehicleResponseModel> call, @NonNull Response<SelectedVehicleResponseModel> response) {
+            Call<SelectedVehicleResponseModel> call = retrofitAPI.getSingleCarData(selectedCarVid, selectedCarObjId);
+            call.enqueue(new Callback<SelectedVehicleResponseModel>() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @SuppressLint({"SetTextI18n", "UseCompatLoadingForDrawables"})
+                @Override
+                public void onResponse(@NonNull Call<SelectedVehicleResponseModel> call, @NonNull Response<SelectedVehicleResponseModel> response) {
 
-                String location = response.body().getLocation();
-                String health = response.body().getBatteryHealth();
-                String volt = response.body().getBatteryVolt();
-                String ignition = response.body().getIgnition();
-                String speed = response.body().getSpeed();
-                String vehicleNo = response.body().getVehicleNo();
-                String x = response.body().getX();
-                String y = response.body().getY();
-                GpsTime gpsTime = response.body().GpsTime;
-                String V_Ang = response.body().getAng();
-                String CustName = response.body().getCustName();
+                    String location = response.body().getLocation();
+                    String health = response.body().getBatteryHealth();
+                    String volt = response.body().getBatteryVolt();
+                    String ignition = response.body().getIgnition();
+                    String speed = response.body().getSpeed();
+                    String vehicleNo = response.body().getVehicleNo();
+                    String x = response.body().getX();
+                    String y = response.body().getY();
+                    GpsTime gpsTime = response.body().GpsTime;
+                    String V_Ang = response.body().getAng();
+                    String CustName = response.body().getCustName();
 
-                if (location != null && health != null && volt != null && ignition != null && speed != null && vehicleNo != null && x != null && y != null && gpsTime != null && V_Ang != null) {
-                    txtSpeed.setText(speed + " KM/H");
-                    txtVehicleNo.setText(vehicleNo);
-                    String ign;
-                    if (Integer.parseInt(ignition) == 0) {
-                        ign = "Ignition OFF";
-                    } else {
-                        ign = "Ignition ON";
-                    }
-                    txtIgnition.setText(ign);
-                    txtLatLong.setText(y + " , " + x);
-                    txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
-                    String stringTime = gpsTime.date;
-                    String[] parts = stringTime.split(" ");
-                    String date = parts[0]; // 004
-                    String time = parts[1];
-                    txtUserName.setText("Hi, " + CustName);
-
-                    String[] dayyyy = date.split("-");
-                    String vDay = dayyyy[2];
-                    String vMonth = dayyyy[1];
-
-                    txtDate.setText(date);
-                    locationX = Double.parseDouble(x);
-                    locationY = Double.parseDouble(y);
-                    angle = Integer.parseInt(V_Ang);
-
-
-                    String[] parts2 = time.split(":");
-                    int hour = Integer.parseInt(parts2[0]);
-                    String minute = parts2[1];
-                    String timeStatus;
-
-                    String finalHour;
-
-                    if (hour > 12) {
-                        finalHour = convertTime(String.valueOf(hour));
-                        timeStatus = "PM";
-                    } else {
-                        finalHour = String.valueOf(hour);
-                        timeStatus = "AM";
-                    }
-
-                    txt_time.setText(finalHour + ":" + minute + " " + timeStatus);
-
-
-                    @SuppressLint("SimpleDateFormat")
-                    String sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-
-                    String dateStart = stringTime;
-                    Log.d(TAG, "onResponse: dateStart" + dateStart);
-                    String dateStop = sdf.toString();
-                    Log.d(TAG, "onResponse: dateStop " + dateStop);
-
-                    @SuppressLint("SimpleDateFormat")
-                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    long diffHours = 0;
-
-                    Date d1 = null;
-                    Date d2 = null;
-                    try {
-                        d1 = format.parse(dateStart);
-                        d2 = format.parse(dateStop);
-                        long diff = d2.getTime() - d1.getTime();
-
-                        long diffSeconds = diff / 1000 % 60;
-                        long diffMinutes = diff / (60 * 1000) % 60;
-                        diffHours = diff / (60 * 60 * 1000);
-
-                        Log.d(TAG, "onResponse: diffSeconds " + diffSeconds);
-                        Log.d(TAG, "onResponse: diffMinutes " + diffMinutes);
-                        Log.d(TAG, "onResponse: diffHours " + diffHours);
-
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (diffHours <= 24) {
+                    if (location != null && health != null && volt != null && ignition != null && speed != null && vehicleNo != null && x != null && y != null && gpsTime != null && V_Ang != null) {
+                        txtSpeed.setText(speed + " KM/H");
+                        txtVehicleNo.setText(vehicleNo);
+                        String ign;
                         if (Integer.parseInt(ignition) == 0) {
-                            vehicleColor = R.drawable.red_car;
-                            bgDrawable = R.drawable.bg_red;
-                            drawable1 = getDrawable(bgDrawable);
+                            ign = "Ignition OFF";
+                        } else {
+                            ign = "Ignition ON";
+                        }
+                        txtIgnition.setText(ign);
+                        txtLatLong.setText(y + " , " + x);
+                        txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + location);
+                        String stringTime = gpsTime.date;
+                        String[] parts = stringTime.split(" ");
+                        String date = parts[0]; // 004
+                        String time = parts[1];
+                        txtUserName.setText("Hi, " + CustName);
 
-                        } else if (Integer.parseInt(ignition) == 1 || speed.equals("0")) {
-                            vehicleColor = R.drawable.green_car;
-                            bgDrawable = R.drawable.bg_green;
+                        String[] dayyyy = date.split("-");
+                        String vDay = dayyyy[2];
+                        String vMonth = dayyyy[1];
+
+                        txtDate.setText(date);
+                        locationX = Double.parseDouble(x);
+                        locationY = Double.parseDouble(y);
+                        angle = Integer.parseInt(V_Ang);
+
+
+                        String[] parts2 = time.split(":");
+                        int hour = Integer.parseInt(parts2[0]);
+                        String minute = parts2[1];
+                        String timeStatus;
+
+                        String finalHour;
+
+                        if (hour > 12) {
+                            finalHour = convertTime(String.valueOf(hour));
+                            timeStatus = "PM";
+                        } else {
+                            finalHour = String.valueOf(hour);
+                            timeStatus = "AM";
+                        }
+
+                        txt_time.setText(finalHour + ":" + minute + " " + timeStatus);
+
+
+                        @SuppressLint("SimpleDateFormat")
+                        String sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
+
+                        String dateStart = stringTime;
+                        Log.d(TAG, "onResponse: dateStart" + dateStart);
+                        String dateStop = sdf.toString();
+                        Log.d(TAG, "onResponse: dateStop " + dateStop);
+
+                        @SuppressLint("SimpleDateFormat")
+                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        long diffHours = 0;
+
+                        Date d1 = null;
+                        Date d2 = null;
+                        try {
+                            d1 = format.parse(dateStart);
+                            d2 = format.parse(dateStop);
+                            long diff = d2.getTime() - d1.getTime();
+
+                            long diffSeconds = diff / 1000 % 60;
+                            long diffMinutes = diff / (60 * 1000) % 60;
+                            diffHours = diff / (60 * 60 * 1000);
+
+                            Log.d(TAG, "onResponse: diffSeconds " + diffSeconds);
+                            Log.d(TAG, "onResponse: diffMinutes " + diffMinutes);
+                            Log.d(TAG, "onResponse: diffHours " + diffHours);
+
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        if (diffHours <= 24) {
+                            if (Integer.parseInt(ignition) == 0) {
+                                vehicleColor = R.drawable.red_car;
+                                bgDrawable = R.drawable.bg_red;
+                                drawable1 = getDrawable(bgDrawable);
+
+                            } else if (Integer.parseInt(ignition) == 1 || speed.equals("0")) {
+                                vehicleColor = R.drawable.green_car;
+                                bgDrawable = R.drawable.bg_green;
+                                drawable1 = getDrawable(bgDrawable);
+                            }
+                            layout.setBackground(drawable1);
+
+                        } else {
+                            vehicleColor = R.drawable.gray_car;
+                            bgDrawable = R.drawable.bg_grey;
                             drawable1 = getDrawable(bgDrawable);
+                            layout.setBackground(drawable1);
                         }
                         layout.setBackground(drawable1);
-
+                        onMapReady(mMap);
+                        loadingDialogue.dismiss();
+                        updateMapAfter30Sec();
                     } else {
-                        vehicleColor = R.drawable.gray_car;
-                        bgDrawable = R.drawable.bg_grey;
-                        drawable1 = getDrawable(bgDrawable);
-                        layout.setBackground(drawable1);
+                        Log.d(TAG, "onResponse: Something is null");
+                        showAlertDialogue("Warning", "Data Not Available", R.drawable.ic_close_circle_line);
+                        txtSpeed.setText("-" + " KM/H");
+                        txtIgnition.setText("-");
+                        txtLatLong.setText("-");
+                        txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + "-");
+                        txtDate.setText("00-00-0000");
+                        txt_time.setText("00:00:00");
+                        txtVehicleNo.setText("-");
+                        txtUserName.setText("Hi, " + CustName);
+                        mMarker.remove();
+                        Drawable drawable = getDrawable(R.drawable.bg_grey);
+                        layout.setBackground(drawable);
+                        loadingDialogue.dismiss();
+
                     }
-                    layout.setBackground(drawable1);
-                    onMapReady(mMap);
+                }
+
+                @SuppressLint("SetTextI18n")
+                @Override
+                public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
+
                     loadingDialogue.dismiss();
-                    updateMapAfter30Sec();
-                } else {
-                    Log.d(TAG, "onResponse: Something is null");
+//                Toast.makeText(TripDetailActivity.this, "Data Not Available", Toast.LENGTH_SHORT).show();
                     showAlertDialogue("Warning", "Data Not Available", R.drawable.ic_close_circle_line);
+                    mMap.clear();
                     txtSpeed.setText("-" + " KM/H");
                     txtIgnition.setText("-");
                     txtLatLong.setText("-");
                     txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + "-");
                     txtDate.setText("00-00-0000");
                     txt_time.setText("00:00:00");
-                    txtVehicleNo.setText("-");
-                    txtUserName.setText("Hi, " + CustName);
-                    mMarker.remove();
-                    Drawable drawable = getDrawable(R.drawable.bg_grey);
+                    markerOptions.visible(false);
+                    txtUserName.setText("---");
+                    @SuppressLint("UseCompatLoadingForDrawables") Drawable drawable = getDrawable(R.drawable.bg_grey);
                     layout.setBackground(drawable);
-                    loadingDialogue.dismiss();
-
+                    mMarker.remove();
                 }
-            }
+            });
+        } else {
+            showAlertDialogue2("No Internet",
+                    "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+        }
 
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onFailure(Call<SelectedVehicleResponseModel> call, Throwable t) {
-
-                loadingDialogue.dismiss();
-//                Toast.makeText(TripDetailActivity.this, "Data Not Available", Toast.LENGTH_SHORT).show();
-                showAlertDialogue("Warning", "Data Not Available", R.drawable.ic_close_circle_line);
-                mMap.clear();
-                txtSpeed.setText("-" + " KM/H");
-                txtIgnition.setText("-");
-                txtLatLong.setText("-");
-                txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + "-");
-                txtDate.setText("00-00-0000");
-                txt_time.setText("00:00:00");
-                markerOptions.visible(false);
-                txtUserName.setText("---");
-                @SuppressLint("UseCompatLoadingForDrawables") Drawable drawable = getDrawable(R.drawable.bg_grey);
-                layout.setBackground(drawable);
-                mMarker.remove();
-            }
-        });
     }
 
     private void showAlertDialogue(String title, String message, int icon) {
@@ -859,6 +823,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        mMarker.remove();
                         dialog.cancel();
                     }
                 });
@@ -873,11 +838,11 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public void run() {
                 Log.d(TAG, "run: MapUpdated");
-                if (checkConnection()) {
-                    getSelectedCarData(selectedCarVid, selectedObjID);
-                } else {
+                if (!checkConnection()) {
                     showAlertDialogue2("No Internet",
                             "Make sure your internet is connected and try again", R.drawable.ic_wifi_off_fill);
+                } else {
+                    getSelectedCarData(selectedCarVid, selectedObjID);
                 }
                 loadingDialogue.dismiss();
             }
@@ -929,7 +894,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         finalHour = time1;
         return finalHour;
     }
-
 
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vector) {
 

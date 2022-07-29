@@ -27,6 +27,7 @@ Tel: 021-35147324-7 | UAN: 021-111-148-235</string>
     <string name="bottomDisclaimer">Disclaimer</string>
     <string name="bottomCall">Call</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string name="title_activity_poly">PolyActivity</string>
 
 
 
