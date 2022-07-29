@@ -77,7 +77,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private GoogleMap mMap;
     private BottomSheetBehavior bottomSheetBehavior;
     LinearLayout layout;
-    TextView txt_time, txtSpeed, txtIgnition, txtLatLong, txtVehicleNo;
+    TextView txt_time, txtSpeed, txtIgnition, txtLatLong;
     MarkerOptions markerOptions;
     Marker mMarker;
     private ImageView gas;
@@ -109,6 +109,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     int vehicleColor = R.drawable.black_car;
     int bgDrawable = R.drawable.bg_red;
     private ConstraintLayout yesterdayLayout;
+    private ConstraintLayout past7daysItem;
 
     private static RemoteViews contentView;
     private static Notification notification;
@@ -124,6 +125,15 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trip_detail);
 
+        loadingDialogue = new Dialog(this);
+        loadingDialogue.setContentView(R.layout.loading);
+        loadingDialogue.getWindow().setBackgroundDrawable(getDrawable(R.drawable.rounded_corner_main_activity));
+        loadingDialogue.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        loadingDialogue.setCancelable(false);
+
+        loadingDialogue.show();
+
+
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         @SuppressLint("InvalidWakeLockTag")
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
@@ -132,15 +142,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         wl.release();
 //        circularProgressBar();
 
-        loadingDialogue = new Dialog(this);
-        loadingDialogue.setContentView(R.layout.loading);
-        loadingDialogue.getWindow().setBackgroundDrawable(getDrawable(R.drawable.rounded_corner_main_activity));
-        loadingDialogue.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        loadingDialogue.setCancelable(false);
+
 
 //        Intent intent = getIntent();
 //        phNo = intent.getStringExtra("contact");
-        loadingDialogue.show();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -152,7 +157,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         layout = findViewById(R.id.txtNumP);
         txtSpeed = findViewById(R.id.txtSpeed);
-        txtVehicleNo = findViewById(R.id.txtSelectedVehicle);
         txtLatLong = findViewById(R.id.txtLatLong);
         txtIgnition = findViewById(R.id.txtIgnition);
         txt_time = findViewById(R.id.txt_time);
@@ -161,6 +165,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         txtNoCar = findViewById(R.id.txt_car_no);
         txtUserName = findViewById(R.id.txtUserName);
         yesterdayLayout = findViewById(R.id.yesterdayItem);
+        past7daysItem = findViewById(R.id.past7daysItem);
 
         parking = findViewById(R.id.imageView9);
         gas = findViewById(R.id.imageView10);
@@ -177,6 +182,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         hospitals.setOnClickListener(this);
         carmechanic.setOnClickListener(this);
         yesterdayLayout.setOnClickListener(this);
+        past7daysItem.setOnClickListener(this);
 
 //        ConstraintLayout bottomSheetLayout = findViewById(R.id.bottom_sheet);
 //        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
@@ -187,6 +193,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         circularBars2();
 
         try {
+            loadingDialogue.show();
             getCarData(getIntent().getStringExtra("contact"));
             drawable1 = getDrawable(bgDrawable);
             layout.setBackground(drawable1);
@@ -521,7 +528,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         markerOptions = new MarkerOptions().position(myCarLocation).title("Your Location")
                 .icon(bitmapDescriptorFromVector(this, vehicleColor)).rotation(angle);
         mMarker = mMap.addMarker(markerOptions);
-
+        loadingDialogue.dismiss();
         //        mMap.addMarker(markerOptions);
 
 //        mMap.addMarker(new MarkerOptions().position(myCarLocation).title("Your Location")
@@ -571,16 +578,19 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 break;
 
             case R.id.yesterdayItem:
-                shiftToPolyActivity();
+                shiftToPolyActivity(1);
+                break;
+
+            case R.id.past7daysItem:
+                shiftToPolyActivity(2);
                 break;
 
         }
     }
 
-    private void shiftToPolyActivity() {
-
+    private void shiftToPolyActivity(int i) {
         Intent intent = new Intent(TripDetailActivity.this,PolyActivity.class);
-        intent.putExtra("status",1);
+        intent.putExtra("status",i);
         startActivity(intent);
     }
 
@@ -666,7 +676,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
                     if (location != null && health != null && volt != null && ignition != null && speed != null && vehicleNo != null && x != null && y != null && gpsTime != null && V_Ang != null) {
                         txtSpeed.setText(speed + " KM/H");
-                        txtVehicleNo.setText(vehicleNo);
+
                         String ign;
                         if (Integer.parseInt(ignition) == 0) {
                             ign = "Ignition OFF";
@@ -773,7 +783,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                         txtVehicleDetails.setText("Last Reported Location of your vehicle is\n" + "-");
                         txtDate.setText("00-00-0000");
                         txt_time.setText("00:00:00");
-                        txtVehicleNo.setText("-");
                         txtUserName.setText("Hi, " + CustName);
                         mMarker.remove();
                         Drawable drawable = getDrawable(R.drawable.bg_grey);

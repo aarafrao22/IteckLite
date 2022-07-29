@@ -284,11 +284,11 @@
                                         app:tint="@color/white" />
 
                                     <TextView
-                                        android:id="@+id/txtSelectedVehicle"
+                                        android:id="@+id/trackToday"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginStart="4dp"
-                                        android:text="Start"
+                                        android:text="Track Today"
                                         android:textColor="@color/white" />
 
                                 </LinearLayout>
@@ -589,6 +589,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/card3">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/past7daysItem"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent">
 

@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:padding="16dp"
+    android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     android:background="@drawable/bottomsheet_item"
-    android:layout_height="wrap_content">
+    android:padding="16dp">
 
     <LinearLayout
         android:id="@+id/linearLayout7"
@@ -48,9 +48,11 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.04">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
+
             android:layout_width="10dp"
             android:layout_height="10dp"
+            android:fillColor="@color/green"
             android:src="@drawable/ic_baseline_circle_24"
             app:tint="@color/green" />
 
@@ -61,7 +63,7 @@
             android:src="@drawable/line"
             app:tint="@color/dark_grey" />
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:layout_width="10dp"
             android:layout_height="10dp"
             android:src="@drawable/ic_baseline_circle_24"
@@ -109,7 +111,7 @@
         app:layout_constraintStart_toStartOf="@+id/linearLayout7"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout9">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imageView15"
             android:layout_width="14dp"
             android:layout_height="14dp"
@@ -127,8 +129,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="Distance : 9.99 Km"
-            android:textSize="12dp"
             android:textColor="@color/green"
+            android:textSize="12dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/imageView15"
             app:layout_constraintTop_toTopOf="parent" />
@@ -149,10 +151,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="25/6/2021"
-            android:textSize="12dp"
             android:textColor="@color/orange"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:textSize="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
